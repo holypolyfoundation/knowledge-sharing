@@ -22,7 +22,7 @@ export function parseAsciiScenarioInput(input: string): AsciiScenario | null {
 function orderedFrontmatter(data: Record<string, unknown>): Record<string, unknown> {
   const ordered: Record<string, unknown> = {};
 
-  for (const key of ["title", "summary", "ascii_seed"]) {
+  for (const key of ["title", "summary", "ascii_seed", "ascii_height"]) {
     if (key in data) {
       ordered[key] = data[key];
     }

@@ -20,6 +20,7 @@ Frontmatter:
 title: Intro
 summary: What this slide covers
 ascii_seed: "zero-one"
+ascii_height: 3
 ---
 ```
 
@@ -31,6 +32,10 @@ Available non-null values today:
 - `"fire"`
 - `"terminal"`
 - `"game-of-life"`
+
+`ascii_height` is optional and defaults to `3`.
+Use a positive integer when you want more or fewer animation rows.
+When `ascii_seed` is `null`, `ascii_height` is allowed but has no effect.
 
 Body rules:
 - Do not use `#` headings in the slide body
@@ -51,7 +56,8 @@ Body rules:
 ## ASCII Guidance
 - The repo skill lives at `.ai/skills/generate-slide-ascii/SKILL.md`
 - Keep one visual style across the deck
-- All animations are exactly 3 lines tall and stretch to the full slide width
+- Animations default to 3 lines tall and stretch to the full slide width
+- Increase `ascii_height` to add rows; the renderer shrinks font size proportionally to keep the block height near the default size
 - Prefer `null` unless one of the hardcoded scenarios is a clearly good fit
 - Preserve the rest of the Markdown file when updating `ascii_seed`
 

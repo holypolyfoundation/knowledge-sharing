@@ -10,23 +10,25 @@ const manifest = {
       title: "Demo",
       slides: [
         {
-          id: 0,
-          slug: "intro",
-          title: "Intro",
-          summary: "Opening slide",
-          asciiSeed: "zero-one",
-          html: '<h2>Scene</h2><div class="mermaid">graph TD; A-->B;</div>',
-          hasMermaid: true
-        },
+        id: 0,
+        slug: "intro",
+        title: "Intro",
+        summary: "Opening slide",
+        asciiSeed: "zero-one",
+        asciiHeight: 10,
+        html: '<h2>Scene</h2><div class="mermaid">graph TD; A-->B;</div>',
+        hasMermaid: true
+      },
         {
           id: 1,
-          slug: "next-step",
-          title: "Next Step",
-          summary: "",
-          asciiSeed: null,
-          html: "<h2>Plan</h2><p>Keep going</p>",
-          hasMermaid: false
-        }
+        slug: "next-step",
+        title: "Next Step",
+        summary: "",
+        asciiSeed: null,
+        asciiHeight: 5,
+        html: "<h2>Plan</h2><p>Keep going</p>",
+        hasMermaid: false
+      }
       ]
     }
   ]
@@ -73,7 +75,8 @@ describe("createPresentationApp", () => {
     expect(document.querySelector(".telemetry-strip")).toBeNull();
     expect(document.querySelector(".system-header")).toBeNull();
     expect(document.querySelector(".stage-heading h1")?.textContent).toBe("Intro");
-    expect(document.querySelector(".slide-ascii pre")?.textContent?.split("\n")).toHaveLength(3);
+    expect(document.querySelector(".slide-ascii pre")?.textContent?.split("\n")).toHaveLength(10);
+    expect(document.querySelector(".slide-ascii")?.getAttribute("style")).toContain("--ascii-rows: 10");
     expect(window.location.hash).toContain("/slide/0");
   });
 

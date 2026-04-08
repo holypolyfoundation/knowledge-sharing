@@ -60,6 +60,29 @@ Shared context
     expect(nextContent).not.toContain("data-slide-ascii");
   });
 
+  it("preserves existing ascii_height and keeps it ordered after ascii_seed", async () => {
+    const root = await mkdtemp(path.join(os.tmpdir(), "knowledge-sharing-"));
+    tempDirectories.push(root);
+    const slidePath = path.join(root, "0-intro.md");
+    await writeFile(
+      slidePath,
+      `---
+title: Intro
+summary: Opening frame
+ascii_height: 10
+---
+## Scene
+Shared context
+`,
+      "utf8"
+    );
+
+    await updateSlideAsciiSeed(slidePath, "fire");
+    const nextContent = await readFile(slidePath, "utf8");
+
+    expect(nextContent).toContain('ascii_seed: "fire"\nascii_height: 10');
+  });
+
   it("allows null ascii_seed updates", async () => {
     const root = await mkdtemp(path.join(os.tmpdir(), "knowledge-sharing-"));
     tempDirectories.push(root);

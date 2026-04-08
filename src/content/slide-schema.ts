@@ -5,12 +5,14 @@ export const SLIDE_FILE_PATTERN = /^(?<id>\d+)-(?<slug>[a-z0-9]+(?:-[a-z0-9]+)*)
 export const ASCII_BLOCK_PATTERN =
   /<div align="center" data-slide-ascii>\s*<pre>[\s\S]*?<\/pre>\s*<\/div>/g;
 export const ASCII_SCENARIOS = ["zero-one", "fire", "terminal", "game-of-life"] as const;
+export const DEFAULT_ASCII_HEIGHT = 3;
 export type AsciiScenario = (typeof ASCII_SCENARIOS)[number];
 
 export interface SlideFrontmatter {
   title: string;
   summary: string;
   ascii_seed: AsciiScenario | null;
+  ascii_height: number;
 }
 
 export interface ParsedSlide {
@@ -53,6 +55,18 @@ function asNullableAsciiSeed(value: unknown, filePath: string): AsciiScenario | 
   }
 
   return normalized as AsciiScenario;
+}
+
+function asAsciiHeight(value: unknown, filePath: string): number {
+  if (value === undefined) {
+    return DEFAULT_ASCII_HEIGHT;
+  }
+
+  if (!Number.isInteger(value) || typeof value !== "number" || value < 1) {
+    throw new Error(`${filePath}: "ascii_height" must be an integer greater than or equal to 1.`);
+  }
+
+  return value;
 }
 
 export function parseTopicDirectoryName(directoryName: string): { id: number; slug: string } {
@@ -112,7 +126,8 @@ export function parseSlideMarkdown(raw: string, filePath: string): ParsedSlide {
   const frontmatter: SlideFrontmatter = {
     title: asNonEmptyString(parsed.data.title, "title", filePath),
     summary: asOptionalString(parsed.data.summary),
-    ascii_seed: asNullableAsciiSeed(parsed.data.ascii_seed, filePath)
+    ascii_seed: asNullableAsciiSeed(parsed.data.ascii_seed, filePath),
+    ascii_height: asAsciiHeight(parsed.data.ascii_height, filePath)
   };
   const body = parsed.content.trim();
 

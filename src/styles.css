@@ -438,6 +438,9 @@ button:focus-visible {
 }
 
 .slide-ascii {
+  --ascii-rows: 3;
+  --ascii-row-scale: calc(3 / var(--ascii-rows));
+  --ascii-font-size: clamp(8px, 1.15vw, 11px);
   position: relative;
   margin: 0 auto 30px;
   max-width: 1040px;
@@ -458,8 +461,8 @@ button:focus-visible {
   z-index: 1;
   margin: 0;
   font-family: var(--font-mono);
-  font-size: clamp(8px, 1.15vw, 11px);
-  line-height: 1.55;
+  font-size: calc(var(--ascii-font-size) * var(--ascii-row-scale));
+  line-height: 1;
   text-align: left;
   white-space: pre;
   color: rgba(201, 185, 154, 0.8);
@@ -470,7 +473,7 @@ button:focus-visible {
   display: block;
   width: 100%;
   overflow: hidden;
-  min-height: calc(3 * 1.55em);
+  min-height: calc(var(--ascii-rows) * 1.55em);
 }
 
 .slide-ascii-overlay {
@@ -656,7 +659,7 @@ button:focus-visible {
     min-width: 0;
   }
 
-  .slide-ascii pre {
-    font-size: 9px;
+  .slide-ascii {
+    --ascii-font-size: 9px;
   }
 }

@@ -100,7 +100,7 @@ export function createPresentationApp(options: {
         summary: slide.summary,
         slideId: slide.id,
         slideNumber: currentSlideNumber
-      });
+      }, slide.asciiHeight);
     }
 
     if (slideBody && slide.hasMermaid && mermaidAdapter) {
@@ -201,7 +201,7 @@ function renderSlideView(
         ${summaryMarkup}
       </div>
     </div>
-    ${slide.asciiSeed ? '<div class="slide-ascii" data-slide-ascii></div>' : ""}
+    ${slide.asciiSeed ? `<div class="slide-ascii" data-slide-ascii style="--ascii-rows: ${slide.asciiHeight};"></div>` : ""}
     <div class="slide-body">${slide.html}</div>
   `;
   article.querySelector<HTMLButtonElement>(".system-control")?.addEventListener("click", () => {

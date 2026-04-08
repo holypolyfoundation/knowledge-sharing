@@ -1,4 +1,4 @@
-import type { AsciiScenario } from "../content/slide-schema.ts";
+import { DEFAULT_ASCII_HEIGHT, type AsciiScenario } from "../content/slide-schema.ts";
 
 interface AsciiMeta {
   topicTitle: string;
@@ -10,11 +10,11 @@ interface AsciiMeta {
 
 interface ScenarioContext {
   columns: number;
+  rows: number;
   frame: number;
   seed: number;
 }
 
-const ASCII_ROWS = 3;
 const ASCII_FPS = 12;
 
 function clamp(value: number, min: number, max: number): number {
@@ -32,16 +32,27 @@ function hashSeed(input: string): number {
   return hash >>> 0;
 }
 
-function createBlankRows(columns: number): string[][] {
-  return Array.from({ length: ASCII_ROWS }, () => Array.from({ length: columns }, () => " "));
+function resolveAsciiHeight(height: number): number {
+  return Number.isInteger(height) && height > 0 ? height : DEFAULT_ASCII_HEIGHT;
 }
 
-function createFilledRows(columns: number, glyphs: [string, string, string]): string[][] {
-  return glyphs.map((glyph) => Array.from({ length: columns }, () => glyph));
+function createBlankRows(columns: number, rows: number): string[][] {
+  return Array.from({ length: rows }, () => Array.from({ length: columns }, () => " "));
 }
 
-function normalizeColumns(columns: number): number {
-  return clamp(columns, 24, 180);
+function createFilledRows(columns: number, rows: number, glyphs: readonly string[]): string[][] {
+  return Array.from({ length: rows }, (_, row) => {
+    const glyph = glyphs[row] ?? glyphs[glyphs.length - 1] ?? " ";
+    return Array.from({ length: columns }, () => glyph);
+  });
+}
+
+function getMaxColumns(rows: number): number {
+  return Math.max(180, Math.round(180 / getAsciiRowScale(rows)));
+}
+
+function normalizeColumns(columns: number, rows: number): number {
+  return clamp(columns, 24, getMaxColumns(rows));
 }
 
 function stamp(rows: string[][], row: number, column: number, text: string): void {
@@ -98,13 +109,13 @@ function fireFlicker(seed: number, row: number, column: number, frame: number): 
   return raw / 4294967295;
 }
 
-function pickFireGlyph(row: number, intensity: number, draft: number): string {
-  if (row === 2) {
+function pickFireGlyph(rowProgress: number, intensity: number, draft: number): string {
+  if (rowProgress > 0.82) {
     const bed = [".", ":", ";", "!", "i", "I", "H", "M", "#", "%", "@"] as const;
     return bed[Math.min(bed.length - 1, Math.floor(intensity * bed.length))] ?? "@";
   }
 
-  if (row === 1 && intensity > 0.62) {
+  if (rowProgress > 0.52 && intensity > 0.62) {
     if (draft > 0.24) {
       return "/";
     }
@@ -114,7 +125,7 @@ function pickFireGlyph(row: number, intensity: number, draft: number): string {
     }
   }
 
-  if (row === 0 && intensity > 0.72) {
+  if (rowProgress < 0.35 && intensity > 0.72) {
     if (draft > 0.18) {
       return "/";
     }
@@ -124,7 +135,7 @@ function pickFireGlyph(row: number, intensity: number, draft: number): string {
     }
   }
 
-  const plume = row === 0
+  const plume = rowProgress < 0.35
     ? [" ", " ", ".", "'", "`", "^", "*"]
     : [" ", ".", ":", "!", "i", "*", "%"];
 
@@ -132,7 +143,7 @@ function pickFireGlyph(row: number, intensity: number, draft: number): string {
 }
 
 function renderFireFrame(context: ScenarioContext): string {
-  const rows = createBlankRows(context.columns);
+  const rows = createBlankRows(context.columns, context.rows);
   const time = context.frame / ASCII_FPS;
   const phase = ((context.seed % 4096) / 4096) * Math.PI * 2;
 
@@ -148,11 +159,12 @@ function renderFireFrame(context: ScenarioContext): string {
       1
     );
 
-    for (let row = 0; row < ASCII_ROWS; row += 1) {
-      const rowBoost = [-0.26, 0.06, 0.34][row] ?? 0;
+    for (let row = 0; row < context.rows; row += 1) {
+      const rowProgress = context.rows === 1 ? 1 : row / (context.rows - 1);
+      const rowBoost = rowProgress * 0.6 - 0.26;
       const rowFlicker = (fireFlicker(context.seed, row, column, context.frame) - 0.5) * 0.16;
       const intensity = clamp(baseHeat + rowBoost + rowFlicker + Math.max(0, slowWave) * 0.06, 0, 1);
-      rows[row][column] = pickFireGlyph(row, intensity, draft);
+      rows[row][column] = pickFireGlyph(rowProgress, intensity, draft);
     }
   }
 
@@ -170,9 +182,12 @@ function renderFireFrame(context: ScenarioContext): string {
     const cycle = Math.floor(sparkFrame / cadence);
     const origin = hashSeed(`${context.seed}|spark|${index}|${cycle}`) % context.columns;
     const direction = (hashSeed(`${context.seed}|spark-drift|${index}|${cycle}`) & 1) === 0 ? -1 : 1;
-    const row = 2 - age;
+    const row = context.rows - 1 - age;
     const column = (origin + direction * age + context.columns) % context.columns;
-    rows[row][column] = row === 0 ? "'" : row === 1 ? "*" : ".";
+
+    if (row >= 0) {
+      rows[row][column] = row === 0 ? "'" : row === context.rows - 1 ? "." : "*";
+    }
   }
 
   return renderRows(rows);
@@ -192,7 +207,7 @@ const TERMINAL_LINES = [
 ] as const;
 
 function renderTerminalFrame(context: ScenarioContext): string {
-  const rows = createFilledRows(context.columns, [" ", " ", " "]);
+  const rows = createBlankRows(context.columns, context.rows);
   const holdFrames = 5;
   const stepFrames = 1;
   const durations = TERMINAL_LINES.map((line) => line.length * stepFrames + holdFrames);
@@ -216,31 +231,29 @@ function renderTerminalFrame(context: ScenarioContext): string {
   }
 
   const totalCompleted = cyclesCompleted * TERMINAL_LINES.length + completedInCycle;
-  const visibleIndexes = [totalCompleted - 2, totalCompleted - 1, totalCompleted];
   const activeLine = TERMINAL_LINES[lineIndex] ?? TERMINAL_LINES[0];
   const typedChars = Math.min(activeLine.length, Math.floor(lineFrame / stepFrames));
   const isHolding = lineFrame >= activeLine.length * stepFrames;
   const cursor = isHolding ? " " : lineFrame % 2 === 0 ? "_" : " ";
   const activeVisible = `${activeLine.slice(0, typedChars)}${cursor}`.slice(0, context.columns).padEnd(context.columns, " ");
+  const completedLineCount = Math.max(0, context.rows - 1);
 
-  for (let row = 0; row < 2; row += 1) {
-    const absoluteIndex = visibleIndexes[row];
+  for (let row = 0; row < completedLineCount; row += 1) {
+    const absoluteIndex = totalCompleted - (completedLineCount - row);
 
-    if (absoluteIndex < 0) {
-      continue;
+    if (absoluteIndex >= 0) {
+      const line = TERMINAL_LINES[absoluteIndex % TERMINAL_LINES.length] ?? "";
+      stamp(rows, row, 0, line.slice(0, context.columns).padEnd(context.columns, " "));
     }
-
-    const line = TERMINAL_LINES[absoluteIndex % TERMINAL_LINES.length] ?? "";
-    stamp(rows, row, 0, line.slice(0, context.columns).padEnd(context.columns, " "));
   }
 
-  stamp(rows, 2, 0, activeVisible);
+  stamp(rows, context.rows - 1, 0, activeVisible);
 
   return renderRows(rows);
 }
 
-function createEmptyLifeState(columns: number): boolean[][] {
-  return Array.from({ length: ASCII_ROWS }, () => Array.from({ length: columns }, () => false));
+function createEmptyLifeState(columns: number, rows: number): boolean[][] {
+  return Array.from({ length: rows }, () => Array.from({ length: columns }, () => false));
 }
 
 function cloneLifeState(rows: boolean[][]): boolean[][] {
@@ -259,9 +272,19 @@ function serializeLifeState(rows: boolean[][]): string {
   return rows.map((row) => row.map((cell) => (cell ? "1" : "0")).join("")).join("|");
 }
 
-function buildInitialLifeState(columns: number, seed: number, epoch: number): boolean[][] {
+function stampLifePattern(rows: boolean[][], anchorRow: number, anchorColumn: number, points: Array<[number, number]>): void {
+  const rowCount = rows.length;
+
+  for (const [rowOffset, columnOffset] of points) {
+    const row = clamp(anchorRow + rowOffset, 0, rowCount - 1);
+    const column = clamp(anchorColumn + columnOffset, 0, rows[0].length - 1);
+    rows[row][column] = true;
+  }
+}
+
+function buildInitialLifeState(columns: number, rowCount: number, seed: number, epoch: number): boolean[][] {
   const epochSeed = hashSeed(`${seed}|life-epoch|${epoch}`);
-  const rows = Array.from({ length: ASCII_ROWS }, (_, row) =>
+  const rows = Array.from({ length: rowCount }, (_, row) =>
     Array.from({ length: columns }, (_, column) => {
       const noise = hashSeed(`${epochSeed}|life|${row}|${column}`);
       const horizontalWeight = Math.sin((column / Math.max(6, columns / 5)) + ((epochSeed % 1024) / 1024) * Math.PI * 2);
@@ -271,45 +294,27 @@ function buildInitialLifeState(columns: number, seed: number, epoch: number): bo
   );
 
   const patternCount = Math.max(3, Math.floor(columns / 18));
+  const patterns: Array<Array<[number, number]>> = [
+    [[-1, -1], [0, 0], [1, -1], [1, 0], [1, 1]],
+    [[-1, 0], [-1, 1], [0, -1], [0, 0], [1, 0], [1, 1]],
+    [[-1, -1], [-1, 1], [0, -1], [0, 0], [0, 1], [1, 0]]
+  ];
 
   for (let index = 0; index < patternCount; index += 1) {
     const anchor = 2 + ((index * Math.max(7, Math.floor(columns / patternCount))) + (epochSeed % 11)) % Math.max(3, columns - 4);
-    const style = hashSeed(`${epochSeed}|life-pattern|${index}`) % 3;
-
-    switch (style) {
-      case 0:
-        rows[0][anchor - 1] = true;
-        rows[1][anchor] = true;
-        rows[2][anchor - 1] = true;
-        rows[2][anchor] = true;
-        rows[2][anchor + 1] = true;
-        break;
-      case 1:
-        rows[0][anchor] = true;
-        rows[0][anchor + 1] = true;
-        rows[1][anchor - 1] = true;
-        rows[1][anchor] = true;
-        rows[2][anchor] = true;
-        rows[2][anchor + 1] = true;
-        break;
-      default:
-        rows[0][anchor - 1] = true;
-        rows[0][anchor + 1] = true;
-        rows[1][anchor - 1] = true;
-        rows[1][anchor] = true;
-        rows[1][anchor + 1] = true;
-        rows[2][anchor] = true;
-        break;
-    }
+    const style = hashSeed(`${epochSeed}|life-pattern|${index}`) % patterns.length;
+    const anchorRow = rowCount === 1 ? 0 : Math.min(rowCount - 1, 1 + (index % Math.max(1, rowCount - 1)));
+    stampLifePattern(rows, anchorRow, anchor, patterns[style] ?? patterns[0]);
   }
 
   return rows;
 }
 
 function evolveLifeState(current: boolean[][], columns: number): boolean[][] {
-  const next = createEmptyLifeState(columns);
+  const rowCount = current.length;
+  const next = createEmptyLifeState(columns, rowCount);
 
-  for (let row = 0; row < ASCII_ROWS; row += 1) {
+  for (let row = 0; row < rowCount; row += 1) {
     for (let column = 0; column < columns; column += 1) {
       let neighbors = 0;
 
@@ -322,7 +327,7 @@ function evolveLifeState(current: boolean[][], columns: number): boolean[][] {
           const nextRow = row + rowOffset;
           const nextColumn = column + columnOffset;
 
-          if (nextRow < 0 || nextRow >= ASCII_ROWS || nextColumn < 0 || nextColumn >= columns) {
+          if (nextRow < 0 || nextRow >= rowCount || nextColumn < 0 || nextColumn >= columns) {
             continue;
           }
 
@@ -339,10 +344,10 @@ function evolveLifeState(current: boolean[][], columns: number): boolean[][] {
   return next;
 }
 
-function buildLifeGeneration(columns: number, seed: number, generation: number): { previous: boolean[][]; current: boolean[][] } {
+function buildLifeGeneration(columns: number, rowCount: number, seed: number, generation: number): { previous: boolean[][]; current: boolean[][] } {
   let epoch = 0;
-  let previous = createEmptyLifeState(columns);
-  let current = buildInitialLifeState(columns, seed, epoch);
+  let previous = createEmptyLifeState(columns, rowCount);
+  let current = buildInitialLifeState(columns, rowCount, seed, epoch);
   let seenStates = new Set([serializeLifeState(current)]);
 
   if (generation === 0) {
@@ -358,8 +363,8 @@ function buildLifeGeneration(columns: number, seed: number, generation: number):
 
     if (!hasLiveCells(next) || lifeStatesEqual(next, current) || seenStates.has(nextSignature)) {
       epoch += 1;
-      previous = createEmptyLifeState(columns);
-      current = buildInitialLifeState(columns, seed, epoch);
+      previous = createEmptyLifeState(columns, rowCount);
+      current = buildInitialLifeState(columns, rowCount, seed, epoch);
       seenStates = new Set([serializeLifeState(current)]);
       continue;
     }
@@ -377,10 +382,10 @@ function buildLifeGeneration(columns: number, seed: number, generation: number):
 
 function renderGameOfLifeFrame(context: ScenarioContext): string {
   const generation = Math.floor(context.frame / 2);
-  const state = buildLifeGeneration(context.columns, context.seed, generation);
-  const rows = createFilledRows(context.columns, [".", ".", "."]);
+  const state = buildLifeGeneration(context.columns, context.rows, context.seed, generation);
+  const rows = createFilledRows(context.columns, context.rows, ["."]);
 
-  for (let row = 0; row < ASCII_ROWS; row += 1) {
+  for (let row = 0; row < context.rows; row += 1) {
     for (let column = 0; column < context.columns; column += 1) {
       if (state.current[row][column]) {
         rows[row][column] = state.previous[row][column] ? "O" : "o";
@@ -395,7 +400,7 @@ function renderGameOfLifeFrame(context: ScenarioContext): string {
 
 function renderZeroOneFrame(context: ScenarioContext): string {
   const shift = Math.floor(context.frame / ASCII_FPS);
-  const rows = Array.from({ length: ASCII_ROWS }, (_, row) => {
+  const rows = Array.from({ length: context.rows }, (_, row) => {
     const baseRow = buildMachineCodeRow(context.columns, row, context.seed);
     return rotateRight(baseRow, shift);
   });
@@ -407,10 +412,12 @@ function buildScenarioSeed(meta: AsciiMeta, scenario: AsciiScenario): number {
   return hashSeed(`${scenario}|${meta.topicTitle}|${meta.slideTitle}|${meta.slideId}|${meta.slideNumber}`);
 }
 
-function renderScenarioFrame(scenario: AsciiScenario, columns: number, frame: number, meta: AsciiMeta): string {
-  const normalizedColumns = normalizeColumns(columns);
+function renderScenarioFrame(scenario: AsciiScenario, columns: number, rows: number, frame: number, meta: AsciiMeta): string {
+  const normalizedRows = resolveAsciiHeight(rows);
+  const normalizedColumns = normalizeColumns(columns, normalizedRows);
   const context: ScenarioContext = {
     columns: normalizedColumns,
+    rows: normalizedRows,
     frame,
     seed: buildScenarioSeed(meta, scenario)
   };
@@ -448,7 +455,22 @@ function measureCharacterWidth(element: HTMLElement): number {
   return width || 7.2;
 }
 
-export function renderAsciiPreview(scenario: AsciiScenario, meta: Partial<AsciiMeta> = {}, columns = 72, frame = 0): string {
+export function getAsciiRowScale(rows: number): number {
+  return DEFAULT_ASCII_HEIGHT / resolveAsciiHeight(rows);
+}
+
+export function getAsciiBlockHeight(rows: number, baseFontSizePx = 11, lineHeight = 1.55): number {
+  const normalizedRows = resolveAsciiHeight(rows);
+  return normalizedRows * lineHeight * baseFontSizePx * getAsciiRowScale(normalizedRows);
+}
+
+export function renderAsciiPreview(
+  scenario: AsciiScenario,
+  meta: Partial<AsciiMeta> = {},
+  columns = 72,
+  frame = 0,
+  rows = DEFAULT_ASCII_HEIGHT
+): string {
   const resolvedMeta: AsciiMeta = {
     topicTitle: "Topic",
     slideTitle: "Slide",
@@ -458,10 +480,12 @@ export function renderAsciiPreview(scenario: AsciiScenario, meta: Partial<AsciiM
     ...meta
   };
 
-  return renderScenarioFrame(scenario, columns, frame, resolvedMeta);
+  return renderScenarioFrame(scenario, columns, rows, frame, resolvedMeta);
 }
 
-export function mountAsciiAnimation(container: HTMLElement, scenario: AsciiScenario, meta: AsciiMeta): () => void {
+export function mountAsciiAnimation(container: HTMLElement, scenario: AsciiScenario, meta: AsciiMeta, rows = DEFAULT_ASCII_HEIGHT): () => void {
+  const asciiHeight = resolveAsciiHeight(rows);
+  container.style.setProperty("--ascii-rows", String(asciiHeight));
   const pre = createAsciiPanel(container);
   const charWidth = measureCharacterWidth(pre);
   let frame = 0;
@@ -472,7 +496,7 @@ export function mountAsciiAnimation(container: HTMLElement, scenario: AsciiScena
   const render = () => {
     const panelWidth = pre.parentElement?.clientWidth ?? pre.clientWidth ?? container.clientWidth;
     const columns = Math.max(24, Math.floor(panelWidth / charWidth));
-    pre.textContent = renderScenarioFrame(scenario, columns, frame, meta);
+    pre.textContent = renderScenarioFrame(scenario, columns, asciiHeight, frame, meta);
     frame += 1;
   };
 

@@ -28,6 +28,7 @@ export interface SlideManifest {
   title: string;
   summary: string;
   asciiSeed: AsciiScenario | null;
+  asciiHeight: number;
   html: string;
   hasMermaid: boolean;
 }
@@ -168,6 +169,7 @@ export async function buildPresentationManifest(topicsDirectory: string): Promis
         title: parsed.frontmatter.title,
         summary: parsed.frontmatter.summary,
         asciiSeed: parsed.frontmatter.ascii_seed,
+        asciiHeight: parsed.frontmatter.ascii_height,
         html: rewriteTopicAssetSrcInHtml(markdown.render(parsed.body), directory.name),
         hasMermaid: parsed.hasMermaid
       });

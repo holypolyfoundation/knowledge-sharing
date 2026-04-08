@@ -28,6 +28,7 @@ graph LR
 
     expect(parsed.frontmatter.title).toBe("Intro");
     expect(parsed.frontmatter.ascii_seed).toBe("zero-one");
+    expect(parsed.frontmatter.ascii_height).toBe(3);
     expect(parsed.sections).toEqual(["Scene", "Flow"]);
     expect(parsed.hasMermaid).toBe(true);
   });
@@ -42,6 +43,32 @@ graph LR
     );
 
     expect(parsed.frontmatter.ascii_seed).toBeNull();
+    expect(parsed.frontmatter.ascii_height).toBe(3);
+  });
+
+  it("accepts explicit ascii_height", () => {
+    const parsed = parseSlideMarkdown(
+      buildValidSlide().replace(
+        "ascii_seed: zero-one",
+        "ascii_seed: zero-one\nascii_height: 10"
+      ),
+      "/tmp/0-intro.md"
+    );
+
+    expect(parsed.frontmatter.ascii_height).toBe(10);
+  });
+
+  it("accepts ascii_height when ascii_seed is null", () => {
+    const parsed = parseSlideMarkdown(
+      buildValidSlide().replace(
+        "ascii_seed: zero-one",
+        "ascii_seed: null\nascii_height: 7"
+      ),
+      "/tmp/0-intro.md"
+    );
+
+    expect(parsed.frontmatter.ascii_seed).toBeNull();
+    expect(parsed.frontmatter.ascii_height).toBe(7);
   });
 
   it("accepts missing summary", () => {
@@ -103,6 +130,27 @@ Shared context`,
         "/tmp/0-intro.md"
       )
     ).toThrow('"ascii_seed" must be one of zero-one, fire, terminal, game-of-life or null.');
+  });
+
+  it("rejects invalid ascii_height values", () => {
+    const invalidValues = ["0", "-1", "2.5", '"10"', "true"];
+
+    for (const value of invalidValues) {
+      expect(() =>
+        parseSlideMarkdown(
+          `---
+title: Intro
+summary: Opening frame
+ascii_seed: zero-one
+ascii_height: ${value}
+---
+
+## Scene
+Shared context`,
+          "/tmp/0-intro.md"
+        )
+      ).toThrow('"ascii_height" must be an integer greater than or equal to 1.');
+    }
   });
 
   it("rejects legacy inline ASCII blocks", () => {

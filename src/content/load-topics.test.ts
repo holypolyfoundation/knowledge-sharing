@@ -8,13 +8,19 @@ import { buildPresentationManifest } from "./load-topics.ts";
 
 const tempDirectories: string[] = [];
 
-function buildSlide(title: string, summary: string | null, body: string): string {
-  return `---
-title: ${title}
-${summary === null ? "" : `summary: ${summary}\n`}ascii_seed: zero-one
----
-${body}
-`;
+function buildSlide(title: string, summary: string | null, body: string, asciiHeight?: number): string {
+  return [
+    "---",
+    `title: ${title}`,
+    summary === null ? null : `summary: ${summary}`,
+    "ascii_seed: zero-one",
+    asciiHeight === undefined ? null : `ascii_height: ${asciiHeight}`,
+    "---",
+    body,
+    ""
+  ]
+    .filter((line) => line !== null)
+    .join("\n");
 }
 
 afterEach(async () => {
@@ -53,6 +59,7 @@ describe("buildPresentationManifest", () => {
     expect(manifest.topics[0].slides.map((slide) => slide.id)).toEqual([3, 8]);
     expect(manifest.topics[0].title).toBe("Earlier");
     expect(manifest.topics[0].slides[0].asciiSeed).toBe("zero-one");
+    expect(manifest.topics[0].slides[0].asciiHeight).toBe(3);
   });
 
   it("rejects duplicate slide ids inside one topic", async () => {
@@ -87,6 +94,21 @@ graph TD
 
     expect(manifest.topics[0].slides[0].html).toContain('class="mermaid"');
     expect(manifest.topics[0].slides[0].hasMermaid).toBe(true);
+  });
+
+  it("exposes explicit asciiHeight values in the manifest", async () => {
+    const root = await mkdtemp(path.join(os.tmpdir(), "knowledge-sharing-"));
+    tempDirectories.push(root);
+    await mkdir(path.join(root, "0-demo"));
+    await writeFile(
+      path.join(root, "0-demo", "0-intro.md"),
+      buildSlide("Intro", "Tall animation", "## Flow\nScaled output", 10),
+      "utf8"
+    );
+
+    const manifest = await buildPresentationManifest(root);
+
+    expect(manifest.topics[0].slides[0].asciiHeight).toBe(10);
   });
 
   it("adds syntax highlighting markup for supported code fences", async () => {
@@ -231,6 +253,7 @@ Plain content
     const manifest = await buildPresentationManifest(root);
 
     expect(manifest.topics[0].slides[0].asciiSeed).toBeNull();
+    expect(manifest.topics[0].slides[0].asciiHeight).toBe(3);
   });
 
   it("defaults missing summary to an empty string", async () => {
