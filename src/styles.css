@@ -1,3 +1,5 @@
+@import url("https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600;700&display=swap");
+
 @font-face {
   font-family: "GeistSans";
   src: url("https://www.holypoly.ca/_next/static/media/Geist_Variable-s.p.92592eb2.woff2") format("woff2");
@@ -38,7 +40,8 @@
   --selection: rgba(201, 185, 154, 0.2);
   --font-sans: "GeistSans", system-ui, sans-serif;
   --font-mono: "GeistMono", ui-monospace, monospace;
-  --font-pixel: "GeistPixelSquare", "GeistMono", ui-monospace, monospace;
+  --font-copy-mono: "IBM Plex Mono", "GeistMono", ui-monospace, monospace;
+  --font-pixel: "GeistPixelSquare", "IBM Plex Mono", "GeistMono", ui-monospace, monospace;
   --shell-width: min(100vw - 24px, 1400px);
 }
 
@@ -280,7 +283,7 @@ button:focus-visible {
 .stage-summary,
 .slide-body p,
 .slide-body li {
-  font-family: var(--font-mono);
+  font-family: var(--font-copy-mono);
   font-size: 13px;
   line-height: 1.8;
   color: var(--zinc-300);
