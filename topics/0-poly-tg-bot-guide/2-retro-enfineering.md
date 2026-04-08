@@ -56,7 +56,7 @@ flowchart TB
 
 ### 5 років тому
 
-![Ретро-вайб інженерії](./assets/retro-vibe.png)
+![Ancient vibe](./assets/retro-vibe.png)
 
 ### Сьогодні
 
