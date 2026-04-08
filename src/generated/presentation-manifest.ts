@@ -40,17 +40,17 @@ export const presentationManifest: PresentationManifest = {
           "title": "Coding is solved. What's next?",
           "summary": "",
           "asciiSeed": "game-of-life",
-          "html": "<h2>Сьогодні кодити можуть всі, але</h2>\n<ol>\n<li>Що робити з кодом?</li>\n<li>Як запускати?</li>\n<li>Де запускати?</li>\n<li>Як скейлити?</li>\n<li>Як дебажити?</li>\n</ol>\n<p>Тут ми і стикаємось з реальністю</p>\n<br />\n<h3>SDLC (DevOps)</h3>\n<div class=\"mermaid\">flowchart LR\n    P[Plan] --&gt; Co[Code] --&gt; Bu[Build] --&gt; Te[Test]\n    Te --&gt; R[Release]\n    R --&gt; De[Deploy] --&gt; Op[Operate] --&gt; M[Monitor]\n    M --&gt; P</div><h2>Сучасний тулінг для розробки</h2>\n<ol>\n<li>Anthropic -&gt; Claude -&gt; Claude Code ($20 base subscription)</li>\n<li>OpenAI -&gt; ChatGPT -&gt; Codex ($20 base subscription)</li>\n<li>Anysphere -&gt; Cursor ($20 base subscription)</li>\n<li>Alphabet -&gt; Gemini -&gt; Antigravity ($20 base subscription)</li>\n</ol>\n",
+          "html": "<h2>Сьогодні кодити можуть всі, але</h2>\n<ol>\n<li>Що робити з кодом?</li>\n<li>Як запускати?</li>\n<li>Де запускати?</li>\n<li>Як скейлити?</li>\n<li>Як дебажити?</li>\n</ol>\n<p>Тут ми і стикаємось з реальністю</p>\n<br />\n<h3>SDLC (DevOps)</h3>\n<div class=\"mermaid\">flowchart LR\n    P[Plan] --&gt; Co[Code] --&gt; Bu[Build] --&gt; Te[Test]\n    Te --&gt; R[Release]\n    R --&gt; De[Deploy] --&gt; Op[Operate] --&gt; M[Monitor]\n    M --&gt; P</div><h2>Сучасний тулінг для розробки</h2>\n<ol>\n<li>Anthropic -&gt; Claude -&gt; Claude Code ($20 base subscription)</li>\n<li>OpenAI -&gt; ChatGPT -&gt; Codex ($20 base subscription)</li>\n<li>Anysphere -&gt; Cursor ($20 base subscription)</li>\n<li>Alphabet -&gt; Gemini -&gt; Antigravity ($20 base subscription)</li>\n</ol>\n<p><strong>!enterprice solution ви не напишете, але, тепер, спокійно можна робити тулінг для себе без tech скілів</strong></p>\n<p><strong>!якщо ти вмієш вирішувати/автоматизовувати свої процеси швидко та ефективно - ти попереду багатьох</strong></p>\n<img src=\"topics/0-poly-tg-bot-guide/assets/people-use-ai.png\" alt=\"People use AI\" style=\"max-width: min(100%, 320px); height: auto;\" />",
           "hasMermaid": true
         },
         {
           "id": 4,
           "slug": "how-to-prompt",
-          "title": "How to ask AI?",
+          "title": "How to make tooling?",
           "summary": "",
           "asciiSeed": null,
-          "html": "",
-          "hasMermaid": false
+          "html": "<h2>Цикл роботи з AI</h2>\n<div class=\"mermaid\">flowchart LR\n  A[Ресерч] --&gt; B[Планування]\n  B --&gt; C[Рев&#39;ю]\n  C --&gt; D[Корекція]\n  D --&gt; E[Імплементація]\n  E --&gt; A</div>",
+          "hasMermaid": true
         },
         {
           "id": 5,

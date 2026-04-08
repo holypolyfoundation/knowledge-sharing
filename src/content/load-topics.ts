@@ -20,7 +20,7 @@ import {
   parseTopicDirectoryName,
   titleCaseSlug
 } from "./slide-schema.ts";
-import { rewriteTopicAssetUrl } from "./topic-assets.ts";
+import { rewriteTopicAssetSrcInHtml, rewriteTopicAssetUrl } from "./topic-assets.ts";
 
 export interface SlideManifest {
   id: number;
@@ -168,7 +168,7 @@ export async function buildPresentationManifest(topicsDirectory: string): Promis
         title: parsed.frontmatter.title,
         summary: parsed.frontmatter.summary,
         asciiSeed: parsed.frontmatter.ascii_seed,
-        html: markdown.render(parsed.body),
+        html: rewriteTopicAssetSrcInHtml(markdown.render(parsed.body), directory.name),
         hasMermaid: parsed.hasMermaid
       });
     }

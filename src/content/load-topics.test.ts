@@ -163,6 +163,29 @@ const total = values.reduce((sum, value) => sum + value, 0);
     expect(html).toContain('alt="Console shot"');
   });
 
+  it("rewrites topic-local src in raw img tags", async () => {
+    const root = await mkdtemp(path.join(os.tmpdir(), "knowledge-sharing-"));
+    tempDirectories.push(root);
+    await mkdir(path.join(root, "0-demo"));
+    await writeFile(
+      path.join(root, "0-demo", "0-intro.md"),
+      buildSlide(
+        "Intro",
+        "Raw img",
+        `## Scene
+<img src="./assets/photo.png" alt="Photo" style="max-width: 400px" />`
+      ),
+      "utf8"
+    );
+
+    const manifest = await buildPresentationManifest(root);
+    const html = manifest.topics[0].slides[0].html;
+
+    expect(html).toContain('src="topics/0-demo/assets/photo.png"');
+    expect(html).toContain('alt="Photo"');
+    expect(html).toContain('max-width: 400px');
+  });
+
   it("leaves external and rooted image paths unchanged", async () => {
     const root = await mkdtemp(path.join(os.tmpdir(), "knowledge-sharing-"));
     tempDirectories.push(root);

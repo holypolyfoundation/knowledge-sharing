@@ -42,6 +42,17 @@ export function rewriteTopicAssetUrl(sourceUrl: string, topicDirectoryName: stri
   return path.posix.join(TOPIC_PUBLIC_DIRECTORY, topicDirectoryName, TOPIC_ASSET_DIRECTORY, assetPath);
 }
 
+/**
+ * Rewrites `src="./assets/..."` and `src="assets/..."` in rendered HTML (e.g. raw `<img>` tags)
+ * so topic-local assets resolve the same way as Markdown image syntax.
+ */
+export function rewriteTopicAssetSrcInHtml(html: string, topicDirectoryName: string): string {
+  return html.replace(/\bsrc="(\.\/)?assets\/([^"]+)"/g, (_match, _dotSlash: string, assetRest: string) => {
+    const rewritten = rewriteTopicAssetUrl(`./assets/${assetRest}`, topicDirectoryName);
+    return `src="${rewritten}"`;
+  });
+}
+
 export function isTopicAssetFile(filePath: string, topicsDirectory: string): boolean {
   const relativePath = path.relative(topicsDirectory, filePath);
 

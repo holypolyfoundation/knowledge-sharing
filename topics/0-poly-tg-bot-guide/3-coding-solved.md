@@ -32,3 +32,9 @@ flowchart LR
 2. OpenAI -> ChatGPT -> Codex ($20 base subscription)
 3. Anysphere -> Cursor ($20 base subscription)
 4. Alphabet -> Gemini -> Antigravity ($20 base subscription)
+
+**!enterprice solution ви не напишете, але, тепер, спокійно можна робити тулінг для себе без tech скілів**
+
+**!якщо ти вмієш вирішувати/автоматизовувати свої процеси швидко та ефективно - ти попереду багатьох**
+
+<img src="./assets/people-use-ai.png" alt="People use AI" style="max-width: min(100%, 320px); height: auto;" />
