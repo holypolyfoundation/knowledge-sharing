@@ -30,10 +30,15 @@ describe("parseAsciiScenarioInput", () => {
     expect(parseAsciiScenarioInput("circuit-pulse")).toBe("circuit-pulse");
     expect(parseAsciiScenarioInput("equalizer")).toBe("equalizer");
     expect(parseAsciiScenarioInput("packet-flow")).toBe("packet-flow");
+    expect(parseAsciiScenarioInput("tide")).toBe("tide");
+    expect(parseAsciiScenarioInput("hourglass")).toBe("hourglass");
+    expect(parseAsciiScenarioInput("forge")).toBe("forge");
+    expect(parseAsciiScenarioInput("swarm")).toBe("swarm");
+    expect(parseAsciiScenarioInput("glitch-banner")).toBe("glitch-banner");
     expect(parseAsciiScenarioInput("terminal")).toBe("terminal");
     expect(parseAsciiScenarioInput("game-of-life")).toBe("game-of-life");
     expect(() => parseAsciiScenarioInput("volcano")).toThrow(
-      'Invalid ascii scenario "volcano". Expected one of zero-one, fire, radar, starfield, circuit-pulse, equalizer, packet-flow, terminal, game-of-life, null, or none.'
+      'Invalid ascii scenario "volcano". Expected one of zero-one, fire, radar, starfield, circuit-pulse, equalizer, packet-flow, tide, hourglass, forge, swarm, glitch-banner, terminal, game-of-life, null, or none.'
     );
   });
 });

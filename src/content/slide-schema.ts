@@ -12,6 +12,11 @@ export const ASCII_SCENARIOS = [
   "circuit-pulse",
   "equalizer",
   "packet-flow",
+  "tide",
+  "hourglass",
+  "forge",
+  "swarm",
+  "glitch-banner",
   "terminal",
   "game-of-life"
 ] as const;

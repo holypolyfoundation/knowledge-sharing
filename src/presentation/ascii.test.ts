@@ -30,6 +30,11 @@ describe("renderAsciiPreview", () => {
       "circuit-pulse",
       "equalizer",
       "packet-flow",
+      "tide",
+      "hourglass",
+      "forge",
+      "swarm",
+      "glitch-banner",
       "terminal",
       "game-of-life"
     ] as const;
@@ -243,6 +248,141 @@ describe("renderAsciiPreview", () => {
     }, 48, 8, 6);
 
     expect(later).not.toBe(start);
+  });
+
+  it("renders tide as layered wave bands", () => {
+    const preview = renderAsciiPreview("tide", {
+      slideTitle: "Ocean",
+      summary: "Flow"
+    }, 48, 18);
+
+    expectFullWidthRows(preview, 48, 3);
+    expect(preview).toMatch(/^[ ~_.\-\n]+$/);
+    expect(preview).toMatch(/[~_-]/);
+  });
+
+  it("animates tide with visible lateral motion", () => {
+    const start = renderAsciiPreview("tide", {
+      slideTitle: "Ocean",
+      summary: "Flow"
+    }, 48, 0);
+    const later = renderAsciiPreview("tide", {
+      slideTitle: "Ocean",
+      summary: "Flow"
+    }, 48, 10);
+
+    expect(later).not.toBe(start);
+  });
+
+  it("renders hourglass with chambers and falling sand", () => {
+    const frames = Array.from({ length: 18 }, (_, frame) =>
+      renderAsciiPreview("hourglass", {
+        slideTitle: "Time",
+        summary: "Drain"
+      }, 48, frame, 6)
+    );
+    const combined = frames.join("\n");
+
+    frames.forEach((preview) => {
+      expectFullWidthRows(preview, 48, 6);
+    });
+
+    expect(combined).toMatch(/[\/\\|]/);
+    expect(combined).toMatch(/[.:]/);
+  });
+
+  it("animates hourglass across frames", () => {
+    const start = renderAsciiPreview("hourglass", {
+      slideTitle: "Time",
+      summary: "Drain"
+    }, 48, 0, 6);
+    const later = renderAsciiPreview("hourglass", {
+      slideTitle: "Time",
+      summary: "Drain"
+    }, 48, 12, 6);
+
+    expect(later).not.toBe(start);
+  });
+
+  it("renders forge as an industrial heat bar with sparks", () => {
+    const frames = Array.from({ length: 18 }, (_, frame) =>
+      renderAsciiPreview("forge", {
+        slideTitle: "Build",
+        summary: "Heat"
+      }, 48, frame, 6)
+    );
+    const combined = frames.join("\n");
+
+    frames.forEach((preview) => {
+      expectFullWidthRows(preview, 48, 6);
+    });
+
+    expect(combined).toMatch(/[=#%:_]/);
+    expect(combined).toMatch(/[*.]/);
+  });
+
+  it("animates forge while keeping its structure stable", () => {
+    const start = renderAsciiPreview("forge", {
+      slideTitle: "Build",
+      summary: "Heat"
+    }, 48, 0, 6);
+    const later = renderAsciiPreview("forge", {
+      slideTitle: "Build",
+      summary: "Heat"
+    }, 48, 8, 6);
+
+    expect(later).not.toBe(start);
+    expect(later).toMatch(/[=#%:_]/);
+  });
+
+  it("renders swarm as clustered particles", () => {
+    const preview = renderAsciiPreview("swarm", {
+      slideTitle: "Agents",
+      summary: "Cluster"
+    }, 48, 18, 6);
+    const visibleGlyphs = preview.replace(/[ \n]/g, "").length;
+
+    expectFullWidthRows(preview, 48, 6);
+    expect(preview).toMatch(/^[ .*o\n]+$/);
+    expect(visibleGlyphs).toBeGreaterThan(8);
+    expect(visibleGlyphs).toBeLessThan(140);
+  });
+
+  it("animates swarm across frames without becoming dense noise", () => {
+    const start = renderAsciiPreview("swarm", {
+      slideTitle: "Agents",
+      summary: "Cluster"
+    }, 48, 0, 6);
+    const later = renderAsciiPreview("swarm", {
+      slideTitle: "Agents",
+      summary: "Cluster"
+    }, 48, 10, 6);
+
+    expect(later).not.toBe(start);
+    expect(later.replace(/[ \n]/g, "").length).toBeLessThan(140);
+  });
+
+  it("renders glitch-banner as a persistent signal strip", () => {
+    const preview = renderAsciiPreview("glitch-banner", {
+      slideTitle: "Signal",
+      summary: "Distortion"
+    }, 48, 2, 5);
+
+    expectFullWidthRows(preview, 48, 5);
+    expect(preview).toMatch(/^[ #=_\-\n]+$/);
+    expect(preview).toMatch(/[=#-]/);
+  });
+
+  it("animates glitch-banner with distortion bursts", () => {
+    const frames = Array.from({ length: 20 }, (_, frame) =>
+      renderAsciiPreview("glitch-banner", {
+        slideTitle: "Signal",
+        summary: "Distortion"
+      }, 48, frame, 5)
+    );
+
+    expect(frames.some((frame, index) => index > 0 && frame !== frames[index - 1])).toBe(true);
+    expect(frames.join("\n")).toMatch(/[#=_-]/);
   });
 
   it("renders terminal as layered command streams with a prompt", () => {

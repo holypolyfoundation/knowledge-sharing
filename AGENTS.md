@@ -35,6 +35,11 @@ Available non-null values today:
 - `"circuit-pulse"`
 - `"equalizer"`
 - `"packet-flow"`
+- `"tide"`
+- `"hourglass"`
+- `"forge"`
+- `"swarm"`
+- `"glitch-banner"`
 - `"terminal"`
 - `"game-of-life"`
 
@@ -56,7 +61,7 @@ Body rules:
 - `pnpm build` regenerates the manifest and produces the static GitHub Pages build in `dist/`
 - `pnpm preview` serves the built site locally
 - `pnpm test` runs automated tests
-- `pnpm ascii --slide "<absolute-or-relative-md-path>" --scenario "<zero-one|fire|radar|starfield|circuit-pulse|equalizer|packet-flow|terminal|game-of-life|null>"` writes or refreshes `ascii_seed` in frontmatter
+- `pnpm ascii --slide "<absolute-or-relative-md-path>" --scenario "<zero-one|fire|radar|starfield|circuit-pulse|equalizer|packet-flow|tide|hourglass|forge|swarm|glitch-banner|terminal|game-of-life|null>"` writes or refreshes `ascii_seed` in frontmatter
 
 ## ASCII Guidance
 - The repo skill lives at `.ai/skills/generate-slide-ascii/SKILL.md`

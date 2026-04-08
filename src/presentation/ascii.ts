@@ -993,6 +993,212 @@ function renderPacketFlowFrame(context: ScenarioContext): string {
   return renderRows(rows);
 }
 
+function renderTideFrame(context: ScenarioContext): string {
+  const rows = createBlankRows(context.columns, context.rows);
+  const phase = ((context.seed % 2048) / 2048) * Math.PI * 2;
+
+  for (let row = 0; row < context.rows; row += 1) {
+    const baseRow = context.rows === 1 ? 0 : row / Math.max(1, context.rows - 1);
+    const amplitude = Math.max(0.7, context.columns * (0.012 + baseRow * 0.01));
+    const rowPhase = phase + row * 0.62;
+
+    for (let column = 0; column < context.columns; column += 1) {
+      const x = column / Math.max(8, context.columns / 7);
+      const wave = Math.sin(x + context.frame / 6 + rowPhase) * 0.62
+        + Math.sin(x * 0.55 - context.frame / 11 + rowPhase * 0.8) * 0.38;
+      const crest = Math.sin(x * 1.4 + context.frame / 8 + rowPhase * 1.3);
+      const rowCenter = (row + 0.5) + wave * amplitude / Math.max(1, context.columns / 16);
+      const distance = Math.abs((row + 0.5) - rowCenter);
+      const normalized = clamp(1 - distance * 2.1, 0, 1);
+
+      if (normalized < 0.15) {
+        if ((hashSeed(`${context.seed}|tide|mist|${row}|${column}`) & 127) === 0) {
+          rows[row][column] = ".";
+        }
+        continue;
+      }
+
+      if (normalized > 0.82 && crest > 0.45) {
+        rows[row][column] = "~";
+      } else if (normalized > 0.62) {
+        rows[row][column] = "-";
+      } else if (normalized > 0.4) {
+        rows[row][column] = "_";
+      } else if ((column + row + context.frame) % 7 === 0) {
+        rows[row][column] = ".";
+      }
+    }
+  }
+
+  return renderRows(rows);
+}
+
+function renderHourglassFrame(context: ScenarioContext): string {
+  const rows = createBlankRows(context.columns, context.rows);
+  const center = Math.floor(context.columns / 2);
+  const loopLength = Math.max(20, context.rows * 12);
+  const cycleFrame = context.frame % loopLength;
+  const progress = cycleFrame / Math.max(1, loopLength - 1);
+  const upperFill = Math.max(0, 1 - progress);
+  const lowerFill = progress;
+  const topRows = Math.max(1, Math.floor(context.rows / 2));
+  const bottomStart = topRows;
+
+  for (let row = 0; row < context.rows; row += 1) {
+    const isTop = row < topRows;
+    const localRow = isTop ? row : row - bottomStart;
+    const halfSpan = isTop
+      ? Math.max(1, Math.round(((topRows - localRow) / Math.max(1, topRows)) * Math.max(2, context.columns * 0.16)))
+      : Math.max(1, Math.round(((localRow + 1) / Math.max(1, context.rows - bottomStart)) * Math.max(2, context.columns * 0.16)));
+    const leftWall = clamp(center - halfSpan, 0, context.columns - 1);
+    const rightWall = clamp(center + halfSpan, 0, context.columns - 1);
+
+    rows[row][leftWall] = "/";
+    rows[row][rightWall] = "\\";
+
+    if (leftWall + 1 < rightWall) {
+      const fillProgress = isTop ? upperFill : lowerFill;
+      const chamberHeight = isTop ? topRows : Math.max(1, context.rows - bottomStart);
+      const normalizedRow = isTop
+        ? (localRow + 1) / Math.max(1, chamberHeight)
+        : 1 - (localRow / Math.max(1, chamberHeight));
+      const filled = isTop ? normalizedRow > 1 - fillProgress : normalizedRow <= fillProgress;
+
+      for (let column = leftWall + 1; column < rightWall; column += 1) {
+        if (filled) {
+          const grain = hashSeed(`${context.seed}|hourglass|grain|${row}|${column}|${cycleFrame}`);
+          rows[row][column] = (grain & 3) === 0 ? ":" : ".";
+        } else if ((hashSeed(`${context.seed}|hourglass|air|${row}|${column}`) & 255) === 0) {
+          rows[row][column] = ".";
+        }
+      }
+    }
+  }
+
+  for (let row = topRows - 1; row <= Math.min(context.rows - 1, bottomStart); row += 1) {
+    if (row >= 0) {
+      rows[row][center] = "|";
+    }
+  }
+
+  const fallingRow = clamp(topRows + (cycleFrame % Math.max(1, context.rows - topRows)), topRows, context.rows - 1);
+  rows[fallingRow][center] = ":";
+  if (fallingRow - 1 >= 0) {
+    rows[fallingRow - 1][center] = ".";
+  }
+
+  return renderRows(rows);
+}
+
+function renderForgeFrame(context: ScenarioContext): string {
+  const rows = createBlankRows(context.columns, context.rows);
+  const anvilRow = Math.min(context.rows - 1, Math.max(0, Math.floor(context.rows * 0.7)));
+  const barRow = Math.max(0, anvilRow - 1);
+  const barWidth = Math.max(6, Math.floor(context.columns * 0.28));
+  const barStart = Math.max(1, Math.floor((context.columns - barWidth) / 2));
+  const pulse = 0.5 + Math.sin(context.frame / 4 + ((context.seed % 1024) / 1024) * Math.PI * 2) * 0.5;
+
+  for (let column = 0; column < context.columns; column += 1) {
+    if (column >= barStart && column < barStart + barWidth) {
+      const hotspot = Math.sin((column - barStart) / Math.max(2, barWidth / 6) + context.frame / 5) * 0.25;
+      const intensity = clamp(pulse + hotspot, 0, 1);
+      rows[barRow][column] = intensity > 0.78 ? "%" : intensity > 0.6 ? "#" : intensity > 0.42 ? "=" : ":";
+    }
+
+    if (rowHasSpace(rows, anvilRow, column)) {
+      rows[anvilRow][column] = column >= barStart - 2 && column < barStart + barWidth + 2 ? "=" : column % 3 === 0 ? "_" : " ";
+    }
+  }
+
+  const sparkCount = Math.max(2, Math.floor(context.columns / 20));
+  for (let index = 0; index < sparkCount; index += 1) {
+    const cadence = 10 + (index % 3) * 3;
+    const age = (context.frame + index * 4) % cadence;
+    if (age > 4) {
+      continue;
+    }
+
+    const origin = barStart + (hashSeed(`${context.seed}|forge|spark-origin|${index}`) % barWidth);
+    const direction = (hashSeed(`${context.seed}|forge|spark-direction|${index}`) & 1) === 0 ? -1 : 1;
+    const row = Math.max(0, barRow - age);
+    const column = clamp(origin + direction * age, 0, context.columns - 1);
+    rows[row][column] = age === 0 ? "*" : age < 3 ? "." : ":";
+  }
+
+  return renderRows(rows);
+}
+
+function rowHasSpace(rows: string[][], row: number, column: number): boolean {
+  return rows[row]?.[column] === " ";
+}
+
+function renderSwarmFrame(context: ScenarioContext): string {
+  const rows = createBlankRows(context.columns, context.rows);
+  const particleCount = Math.max(10, Math.floor((context.columns * context.rows) / 8));
+  const attractorCount = context.rows >= 5 ? 2 : 1;
+  const attractors = Array.from({ length: attractorCount }, (_, index) => {
+    const phase = ((hashSeed(`${context.seed}|swarm|attractor|${index}`) % 4096) / 4096) * Math.PI * 2;
+    return {
+      x: (context.columns - 1) / 2 + Math.sin(context.frame / (8 + index * 3) + phase) * context.columns * (0.14 + index * 0.05),
+      y: (context.rows - 1) / 2 + Math.cos(context.frame / (10 + index * 4) + phase * 1.3) * Math.max(0.8, context.rows * 0.22)
+    };
+  });
+
+  for (let index = 0; index < particleCount; index += 1) {
+    const homeX = hashSeed(`${context.seed}|swarm|home-x|${index}`) % context.columns;
+    const homeY = hashSeed(`${context.seed}|swarm|home-y|${index}`) % context.rows;
+    const target = attractors[index % attractors.length] ?? attractors[0]!;
+    const wobbleX = Math.sin(context.frame / 5 + index * 0.73 + (context.seed % 17)) * 1.8;
+    const wobbleY = Math.cos(context.frame / 7 + index * 0.51 + (context.seed % 23)) * 0.8;
+    const x = Math.round(homeX * 0.28 + target.x * 0.72 + wobbleX);
+    const y = Math.round(homeY * 0.22 + target.y * 0.78 + wobbleY);
+
+    if (y < 0 || y >= context.rows || x < 0 || x >= context.columns) {
+      continue;
+    }
+
+    const existing = rows[y][x];
+    rows[y][x] = existing === " " ? "." : existing === "." ? "o" : "*";
+  }
+
+  return renderRows(rows);
+}
+
+function renderGlitchBannerFrame(context: ScenarioContext): string {
+  const rows = createBlankRows(context.columns, context.rows);
+  const bannerRow = Math.floor((context.rows - 1) / 2);
+  const burst = (Math.floor(context.frame / 9) + (context.seed % 5)) % 4 === 0;
+  const offset = burst ? ((context.frame + context.seed) % 7) - 3 : 0;
+
+  for (let column = 0; column < context.columns; column += 1) {
+    rows[bannerRow][column] = column % 6 === 0 ? "#" : column % 2 === 0 ? "=" : "-";
+
+    if (bannerRow > 0 && column % 9 === 0) {
+      rows[bannerRow - 1][column] = "_";
+    }
+
+    if (bannerRow < context.rows - 1 && column % 11 === 0) {
+      rows[bannerRow + 1][column] = "-";
+    }
+  }
+
+  if (burst) {
+    const sliced = [...rows[bannerRow] ?? []];
+    for (let column = 0; column < context.columns; column += 1) {
+      rows[bannerRow][mod(column + offset, context.columns)] = sliced[column] ?? " ";
+    }
+
+    const noiseRow = bannerRow > 0 && (context.frame % 2 === 0) ? bannerRow - 1 : Math.min(context.rows - 1, bannerRow + 1);
+    for (let column = 0; column < context.columns; column += 1) {
+      if ((hashSeed(`${context.seed}|glitch|${context.frame}|${column}`) & 7) === 0) {
+        rows[noiseRow][column] = column % 2 === 0 ? "#" : "_";
+      }
+    }
+  }
+
+  return renderRows(rows);
+}
+
 function buildScenarioSeed(meta: AsciiMeta, scenario: AsciiScenario): number {
   return hashSeed(`${scenario}|${meta.topicTitle}|${meta.slideTitle}|${meta.slideId}|${meta.slideNumber}`);
 }
@@ -1022,6 +1228,16 @@ function renderScenarioFrame(scenario: AsciiScenario, columns: number, rows: num
       return renderEqualizerFrame(context);
     case "packet-flow":
       return renderPacketFlowFrame(context);
+    case "tide":
+      return renderTideFrame(context);
+    case "hourglass":
+      return renderHourglassFrame(context);
+    case "forge":
+      return renderForgeFrame(context);
+    case "swarm":
+      return renderSwarmFrame(context);
+    case "glitch-banner":
+      return renderGlitchBannerFrame(context);
     case "terminal":
       return renderTerminalFrame(context);
     case "game-of-life":

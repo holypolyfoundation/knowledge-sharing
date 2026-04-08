@@ -134,6 +134,36 @@ Shared context`,
     expect(parsed.frontmatter.ascii_seed).toBe("packet-flow");
   });
 
+  it("accepts tide ascii_seed", () => {
+    const parsed = parseSlideMarkdown(buildValidSlide().replace("ascii_seed: zero-one", "ascii_seed: tide"), "/tmp/0-intro.md");
+
+    expect(parsed.frontmatter.ascii_seed).toBe("tide");
+  });
+
+  it("accepts hourglass ascii_seed", () => {
+    const parsed = parseSlideMarkdown(buildValidSlide().replace("ascii_seed: zero-one", "ascii_seed: hourglass"), "/tmp/0-intro.md");
+
+    expect(parsed.frontmatter.ascii_seed).toBe("hourglass");
+  });
+
+  it("accepts forge ascii_seed", () => {
+    const parsed = parseSlideMarkdown(buildValidSlide().replace("ascii_seed: zero-one", "ascii_seed: forge"), "/tmp/0-intro.md");
+
+    expect(parsed.frontmatter.ascii_seed).toBe("forge");
+  });
+
+  it("accepts swarm ascii_seed", () => {
+    const parsed = parseSlideMarkdown(buildValidSlide().replace("ascii_seed: zero-one", "ascii_seed: swarm"), "/tmp/0-intro.md");
+
+    expect(parsed.frontmatter.ascii_seed).toBe("swarm");
+  });
+
+  it("accepts glitch-banner ascii_seed", () => {
+    const parsed = parseSlideMarkdown(buildValidSlide().replace("ascii_seed: zero-one", "ascii_seed: glitch-banner"), "/tmp/0-intro.md");
+
+    expect(parsed.frontmatter.ascii_seed).toBe("glitch-banner");
+  });
+
   it("accepts terminal ascii_seed", () => {
     const parsed = parseSlideMarkdown(buildValidSlide().replace("ascii_seed: zero-one", "ascii_seed: terminal"), "/tmp/0-intro.md");
 
@@ -159,7 +189,7 @@ ascii_seed: snake
 Shared context`,
         "/tmp/0-intro.md"
       )
-    ).toThrow('"ascii_seed" must be one of zero-one, fire, radar, starfield, circuit-pulse, equalizer, packet-flow, terminal, game-of-life or null.');
+    ).toThrow('"ascii_seed" must be one of zero-one, fire, radar, starfield, circuit-pulse, equalizer, packet-flow, tide, hourglass, forge, swarm, glitch-banner, terminal, game-of-life or null.');
   });
 
   it("rejects invalid ascii_height values", () => {
