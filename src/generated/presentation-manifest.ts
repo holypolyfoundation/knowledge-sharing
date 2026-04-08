@@ -13,7 +13,7 @@ export const presentationManifest: PresentationManifest = {
           "title": "Інтро",
           "summary": "Хто я?",
           "asciiSeed": "zero-one",
-          "html": "<h2>Situation</h2>\n<p>We want a presentation format that feels native to engineering work instead of a detached slide deck tool. Markdown keeps authoring fast, versionable, and close to the code that powers the bot itself.</p>\n<h2>Why This Topic</h2>\n<ul>\n<li>The Poly Telegram bot is a concrete example of agent-assisted product work</li>\n<li>It lets us show planning, prompting, implementation, and review in one story</li>\n<li>The deck format itself demonstrates the repo’s presentation system</li>\n</ul>\n",
+          "html": "",
           "hasMermaid": false
         },
         {

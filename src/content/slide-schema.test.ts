@@ -96,9 +96,11 @@ Shared context
     ).toThrow('legacy inline ASCII blocks are no longer allowed; use frontmatter "ascii_seed" instead.');
   });
 
-  it("rejects slides with zero sections", () => {
-    expect(() => parseSlideMarkdown(buildValidSlide("").replace("## Scene\nShared context", "Body only"), "/tmp/0-intro.md")).toThrow(
-      'slide body must contain at least one "##" section'
-    );
+  it("accepts slides with zero sections", () => {
+    const parsed = parseSlideMarkdown(buildValidSlide("").replace("## Scene\nShared context", ""), "/tmp/0-intro.md");
+
+    expect(parsed.body).toBe("");
+    expect(parsed.sections).toEqual([]);
+    expect(parsed.hasMermaid).toBe(false);
   });
 });

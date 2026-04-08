@@ -118,10 +118,6 @@ export function parseSlideMarkdown(raw: string, filePath: string): ParsedSlide {
 
   const sectionMatches = [...body.matchAll(/^##\s+(.+)$/gm)];
 
-  if (sectionMatches.length === 0) {
-    throw new Error(`${filePath}: slide body must contain at least one "##" section.`);
-  }
-
   return {
     frontmatter,
     body,

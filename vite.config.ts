@@ -23,9 +23,9 @@ function markdownManifestReloadPlugin(): Plugin {
     rebuildQueue = rebuildQueue.then(async () => {
       try {
         await writePresentationManifest({ topicsDirectory, outputFile });
-        server.ws.send({ type: "full-reload" });
       } catch (error) {
-        server.config.logger.error("Failed to rebuild presentation manifest from Markdown changes.", { error });
+        const details = error instanceof Error ? error.message : String(error);
+        server.config.logger.error(`Failed to rebuild presentation manifest from Markdown changes.\n${details}`, { error });
       }
     });
   };
@@ -55,7 +55,7 @@ function markdownManifestReloadPlugin(): Plugin {
 
 export default defineConfig(({ command }) => ({
   base: command === "build" ? `/${repositoryName}/` : "/",
-  plugins: [markdownManifestReloadPlugin()],
+  plugins: process.env.VITEST ? [] : [markdownManifestReloadPlugin()],
   test: {
     environment: "jsdom",
     globals: true
