@@ -24,18 +24,8 @@ describe("parseAsciiScenarioInput", () => {
 
   it("accepts the supported scenario keys and rejects others", () => {
     expect(parseAsciiScenarioInput("zero-one")).toBe("zero-one");
-    expect(parseAsciiScenarioInput("spaceship")).toBe("spaceship");
     expect(parseAsciiScenarioInput("fire")).toBe("fire");
-    expect(parseAsciiScenarioInput("pulse")).toBe("pulse");
-    expect(parseAsciiScenarioInput("waves")).toBe("waves");
-    expect(parseAsciiScenarioInput("scanline")).toBe("scanline");
-    expect(parseAsciiScenarioInput("equalizer")).toBe("equalizer");
-    expect(parseAsciiScenarioInput("signal")).toBe("signal");
-    expect(parseAsciiScenarioInput("radar")).toBe("radar");
-    expect(parseAsciiScenarioInput("skyline")).toBe("skyline");
     expect(parseAsciiScenarioInput("terminal")).toBe("terminal");
-    expect(parseAsciiScenarioInput("conveyor")).toBe("conveyor");
-    expect(parseAsciiScenarioInput("constellation")).toBe("constellation");
     expect(parseAsciiScenarioInput("game-of-life")).toBe("game-of-life");
     expect(() => parseAsciiScenarioInput("volcano")).toThrow('Invalid ascii scenario "volcano"');
   });

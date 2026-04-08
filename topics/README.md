@@ -36,6 +36,6 @@ Add bullets, code blocks, or Mermaid diagrams.
 ## Validation reminders
 - No `#` heading in the body
 - Do not author legacy inline ASCII wrappers in slide bodies
-- Set `ascii_seed` to `null`, `"zero-one"`, `"spaceship"`, `"fire"`, `"pulse"`, `"waves"`, `"scanline"`, `"equalizer"`, `"signal"`, `"radar"`, `"skyline"`, `"terminal"`, `"conveyor"`, `"constellation"`, or `"game-of-life"`
+- Set `ascii_seed` to `null`, `"zero-one"`, `"fire"`, `"terminal"`, or `"game-of-life"`
 - Prefer `null` when a slide does not clearly benefit from one of the built-in scenarios
 - `summary` is optional

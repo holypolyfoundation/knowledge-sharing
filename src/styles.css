@@ -447,10 +447,8 @@ button:focus-visible {
 .slide-ascii-panel {
   position: relative;
   overflow: hidden;
-  border: 1px solid rgba(201, 185, 154, 0.1);
-  border-radius: 4px;
   background: rgba(201, 185, 154, 0.02);
-  padding: 12px;
+  padding: 0;
   box-shadow: 0 0 40px rgba(201, 185, 154, 0.06);
 }
 

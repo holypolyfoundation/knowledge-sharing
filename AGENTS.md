@@ -28,18 +28,8 @@ ascii_seed: "zero-one"
 `ascii_seed` may also be `null` when a slide should intentionally render without an animated ASCII block.
 Available non-null values today:
 - `"zero-one"`
-- `"spaceship"`
 - `"fire"`
-- `"pulse"`
-- `"waves"`
-- `"scanline"`
-- `"equalizer"`
-- `"signal"`
-- `"radar"`
-- `"skyline"`
 - `"terminal"`
-- `"conveyor"`
-- `"constellation"`
 - `"game-of-life"`
 
 Body rules:
@@ -56,7 +46,7 @@ Body rules:
 - `pnpm build` regenerates the manifest and produces the static GitHub Pages build in `dist/`
 - `pnpm preview` serves the built site locally
 - `pnpm test` runs automated tests
-- `pnpm ascii --slide "<absolute-or-relative-md-path>" --scenario "<zero-one|spaceship|fire|pulse|waves|scanline|equalizer|signal|radar|skyline|terminal|conveyor|constellation|game-of-life|null>"` writes or refreshes `ascii_seed` in frontmatter
+- `pnpm ascii --slide "<absolute-or-relative-md-path>" --scenario "<zero-one|fire|terminal|game-of-life|null>"` writes or refreshes `ascii_seed` in frontmatter
 
 ## ASCII Guidance
 - The repo skill lives at `.ai/skills/generate-slide-ascii/SKILL.md`
