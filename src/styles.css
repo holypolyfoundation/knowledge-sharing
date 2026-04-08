@@ -368,10 +368,12 @@ button:focus-visible {
 .system-control,
 .nav-button {
   border: 1px solid var(--zinc-800);
-  background: transparent;
+  background: var(--zinc-950);
   padding: 12px 16px;
   font-family: var(--font-mono);
-  font-size: 11px;
+  font-size: 16px;
+  font-weight: 700;
+  line-height: 1;
   letter-spacing: 0.15em;
   text-transform: uppercase;
   color: var(--pearl);
@@ -385,6 +387,7 @@ button:focus-visible {
 .nav-button:hover:not(:disabled) {
   color: var(--pearl-bright);
   border-color: var(--pearl-dim);
+  background: #09090b;
 }
 
 .slide-body {

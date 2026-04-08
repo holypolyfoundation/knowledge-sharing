@@ -195,7 +195,7 @@ function renderSlideView(
   controls.setAttribute("aria-label", "Slide navigation");
   controls.append(
     createButton(
-      "previous",
+      "←",
       "nav-button",
       () => {
         if (previousSlideId !== null) {
@@ -207,7 +207,7 @@ function renderSlideView(
   );
   controls.append(
     createButton(
-      "next",
+      "→",
       "nav-button primary",
       () => {
         if (nextSlideId !== null) {
