@@ -10,10 +10,10 @@ export const presentationManifest: PresentationManifest = {
         {
           "id": 0,
           "slug": "intro",
-          "title": "Інтро",
+          "title": "Intro",
           "summary": "Хто я?",
           "asciiSeed": "zero-one",
-          "html": "",
+          "html": "<ul>\n<li>9 років в SWE / 3 роки в SRE.</li>\n<li>Проєктую складні системи, оцінюю бизнес ризики, допомагаю втрачати менше грошей під час технічних пожеж.</li>\n<li>Приєднався до ком’юніті, допомагаю реалізовувати корисні інструменти та автоматизації.</li>\n</ul>\n",
           "hasMermaid": false
         },
         {
