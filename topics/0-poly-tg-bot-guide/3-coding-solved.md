@@ -2,7 +2,7 @@
 title: "Coding is solved. What's next?"
 summary: null
 ascii_seed: game-of-life
-ascii_height: 8
+ascii_height: 6
 ---
 
 #### Сьогодні кодити можуть всі, але

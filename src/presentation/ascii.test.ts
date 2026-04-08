@@ -92,38 +92,49 @@ describe("renderAsciiPreview", () => {
   });
 
   it("renders terminal as layered command streams with a prompt", () => {
-    const preview = renderAsciiPreview("terminal", {
-      slideTitle: "Console",
-      summary: "Commands"
-    }, 48, 18);
+    const frames = Array.from({ length: 180 }, (_, frame) =>
+      renderAsciiPreview("terminal", {
+        slideTitle: "Console",
+        summary: "Commands"
+      }, 96, frame)
+    );
+    const combined = frames.join("\n");
 
-    expectFullWidthRows(preview, 48, 3);
-    expect(preview).toMatch(/^[ a-z0-9>_\-]+\n[ a-z0-9>_\-]+\n[ a-z0-9>_\-]+$/i);
-    expect(preview).toContain(">");
-    expect(preview).toMatch(/ok|ready|valid|clean|updated/i);
+    frames.forEach((preview) => {
+      expectFullWidthRows(preview, 96, 3);
+    });
+
+    expect(combined).toContain("~/knowledge-sharing % ");
+    expect(combined).toMatch(/topics\/0-poly-tg-bot-guide|package\.json|src\/presentation\/ascii/i);
+    expect(combined).toMatch(/vite build|generate-slide-ascii|git diff --stat|ascii_seed: null/i);
   });
 
   it("renders taller terminal streams with more retained history", () => {
     const preview = renderAsciiPreview("terminal", {
       slideTitle: "Console",
       summary: "Commands"
-    }, 48, 18, 10);
+    }, 96, 240, 10);
 
-    expectFullWidthRows(preview, 48, 10);
-    expect(preview.split("\n").slice(0, 9).some((line) => line.includes(">"))).toBe(true);
+    expectFullWidthRows(preview, 96, 10);
+    expect(preview.split("\n").some((line) => line.includes("~/knowledge-sharing % "))).toBe(true);
+    expect(preview).toMatch(/topics\/0-poly-tg-bot-guide|package\.json|src\/presentation\/ascii/i);
   });
 
-  it("animates terminal across frames", () => {
-    const start = renderAsciiPreview("terminal", {
-      slideTitle: "Console",
-      summary: "Commands"
-    }, 48, 0);
-    const later = renderAsciiPreview("terminal", {
-      slideTitle: "Console",
-      summary: "Commands"
-    }, 48, 6);
+  it("animates terminal across frames and visibly backtracks during command edits", () => {
+    const frames = Array.from({ length: 420 }, (_, frame) =>
+      renderAsciiPreview("terminal", {
+        slideTitle: "Console",
+        summary: "Commands"
+      }, 120, frame)
+    );
+    const activeLines = frames
+      .map((preview) => preview.split("\n").find((line) => line.includes("_"))?.trimEnd() ?? "")
+      .filter(Boolean);
 
-    expect(later).not.toBe(start);
+    expect(frames.some((frame) => frame !== frames[0])).toBe(true);
+    expect(
+      activeLines.some((line, index) => index > 0 && line.length + 4 < activeLines[index - 1]!.length)
+    ).toBe(true);
   });
 
   it("renders game-of-life as a cellular grid with births and survivors", () => {

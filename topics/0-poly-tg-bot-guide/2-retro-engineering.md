@@ -1,5 +1,5 @@
 ---
-title: "Retro vs Modern Engineering"
+title: "Old school vs Modern Engineering"
 summary: null
 ascii_seed: terminal
 ---

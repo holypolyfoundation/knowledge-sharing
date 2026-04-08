@@ -223,63 +223,348 @@ function renderFireFrame(context: ScenarioContext): string {
   return renderRows(rows);
 }
 
-const TERMINAL_LINES = [
-  "> pnpm test",
-  "ok 63 passed",
-  "> pnpm build",
-  "dist ready",
-  "> pnpm validate",
-  "1 topic valid",
-  "> git status",
-  "clean working tree",
-  "> pnpm ascii terminal",
-  "seed updated"
+interface TerminalCorrection {
+  prefix: string;
+  abandonedTail: string;
+  replacementTail: string;
+}
+
+interface TerminalInteraction {
+  command: string;
+  outputs: readonly string[];
+  correction?: TerminalCorrection;
+}
+
+interface TerminalTimeline {
+  initialCommand: string;
+  finalCommand: string;
+  initialTypingFrames: number[];
+  eraseFrames: number[];
+  retypeFrames: number[];
+  outputFrames: number[];
+  preErasePause: number;
+  postErasePause: number;
+  submitPause: number;
+  outputLeadIn: number;
+  finalHold: number;
+  totalFrames: number;
+}
+
+const TERMINAL_PROMPT = "~/knowledge-sharing % ";
+const TERMINAL_CURSOR = "_";
+
+const TERMINAL_INTERACTIONS: readonly TerminalInteraction[] = [
+  {
+    command: "pnpm test -- --reporter=dot src/presentation/ascii.test.ts",
+    correction: {
+      prefix: "pnpm test -- ",
+      abandonedTail: "--run src/presentation/asc",
+      replacementTail: "--reporter=dot src/presentation/ascii.test.ts"
+    },
+    outputs: [
+      "RUN  src/presentation/ascii.test.ts",
+      "12 tests passed in 91ms",
+      "Duration 143ms (transform 32ms, collect 18ms, tests 91ms)"
+    ]
+  },
+  {
+    command: 'rg -n "ascii_seed: (terminal|null)" topics | sort -t: -k1,1 -k2,2n',
+    outputs: [
+      "topics/0-poly-tg-bot-guide/2-retro-enfineering.md:4:ascii_seed: terminal",
+      "topics/0-poly-tg-bot-guide/4-modern-dev-tooling.md:4:ascii_seed: null",
+      "topics/0-poly-tg-bot-guide/8-qa.md:4:ascii_seed: null"
+    ]
+  },
+  {
+    command: "jq -r '.scripts | to_entries[] | [.key,.value] | @tsv' package.json | column -t -s $'\\t'",
+    outputs: [
+      "dev       vite",
+      "build     vite build",
+      "preview   vite preview",
+      "validate  node --import tsx scripts/build-presentation-manifest.mjs",
+      "test      vitest run",
+      "ascii     node --import tsx scripts/generate-slide-ascii.mjs"
+    ]
+  },
+  {
+    command: "git diff --stat -- src/presentation/ascii.ts src/presentation/ascii.test.ts",
+    correction: {
+      prefix: "git diff --stat -- src/presentation/ascii.ts ",
+      abandonedTail: "src/presentation/ascii.tset.ts",
+      replacementTail: "src/presentation/ascii.test.ts"
+    },
+    outputs: [
+      " src/presentation/ascii.ts      | 188 ++++++++++++++++++++++++++++++++------",
+      " src/presentation/ascii.test.ts |  41 +++++++++-",
+      " 2 files changed, 191 insertions(+), 38 deletions(-)"
+    ]
+  },
+  {
+    command: "fd -e md topics | xargs rg -n '^title:|^ascii_seed:' | head -n 6",
+    outputs: [
+      "topics/0-poly-tg-bot-guide/0-intro.md:2:title: Intro",
+      "topics/0-poly-tg-bot-guide/0-intro.md:4:ascii_seed: zero-one",
+      "topics/0-poly-tg-bot-guide/2-retro-enfineering.md:2:title: Retro Enfineering",
+      "topics/0-poly-tg-bot-guide/2-retro-enfineering.md:4:ascii_seed: terminal"
+    ]
+  },
+  {
+    command: "find src -maxdepth 2 -name '*.ts' -print | sort | xargs wc -l | tail -n 5",
+    outputs: [
+      "   46 src/ascii/seed-generator.ts",
+      "  181 src/content/load-topics.ts",
+      "  149 src/presentation/ascii.test.ts",
+      "  402 src/presentation/ascii.ts",
+      "  998 total"
+    ]
+  },
+  {
+    command: "pnpm validate 2>&1 | sed -n '1,5p'",
+    outputs: [
+      "building presentation manifest",
+      "loaded 1 topic and 9 slides",
+      "virtual:presentation-manifest ready",
+      "validation completed in 74ms"
+    ]
+  }
 ] as const;
 
+function wrapTerminalLines(lines: readonly string[], columns: number): string[] {
+  const wrapped: string[] = [];
+
+  for (const line of lines) {
+    if (line.length === 0) {
+      wrapped.push(" ".repeat(columns));
+      continue;
+    }
+
+    for (let index = 0; index < line.length; index += columns) {
+      wrapped.push(line.slice(index, index + columns).padEnd(columns, " "));
+    }
+  }
+
+  return wrapped;
+}
+
+function renderTerminalViewport(lines: readonly string[], columns: number, rows: number): string {
+  const wrapped = wrapTerminalLines(lines, columns);
+  const visible = wrapped.slice(-rows);
+  const padded = visible.length >= rows
+    ? visible
+    : [...Array.from({ length: rows - visible.length }, () => " ".repeat(columns)), ...visible];
+
+  return padded.join("\n");
+}
+
+function buildTerminalCadence(text: string, seed: number, mode: "type" | "erase"): number[] {
+  const cadence: number[] = [];
+  let elapsed = 0;
+
+  for (let index = 0; index < text.length; index += 1) {
+    const char = text[index] ?? "";
+    const noise = hashSeed(`${seed}|${mode}|${index}|${char}`);
+    let step = mode === "erase" ? 1 : 1 + (noise % 2);
+
+    if (mode === "type") {
+      if (char === " ") {
+        step += 1;
+      } else if ("|&".includes(char)) {
+        step += 2;
+      } else if ("'\"()[]{}".includes(char)) {
+        step += 1;
+      } else if ("/.:".includes(char) && (noise & 3) === 0) {
+        step += 1;
+      }
+
+      if ((noise & 15) === 0) {
+        step += 1;
+      }
+    } else if ((noise & 3) === 0) {
+      step += 1;
+    }
+
+    elapsed += step;
+    cadence.push(elapsed);
+  }
+
+  return cadence;
+}
+
+function countVisibleSteps(frames: readonly number[], frame: number): number {
+  let visible = 0;
+
+  while (visible < frames.length && frame >= frames[visible]) {
+    visible += 1;
+  }
+
+  return visible;
+}
+
+function getTerminalBlink(frame: number): string {
+  return Math.floor(frame / 3) % 2 === 0 ? TERMINAL_CURSOR : " ";
+}
+
+function buildTerminalTimeline(interaction: TerminalInteraction, seed: number): TerminalTimeline {
+  const finalCommand = interaction.command;
+  const initialCommand = interaction.correction
+    ? `${interaction.correction.prefix}${interaction.correction.abandonedTail}`
+    : finalCommand;
+  const initialTypingFrames = buildTerminalCadence(initialCommand, seed, "type");
+  const eraseFrames = interaction.correction
+    ? buildTerminalCadence(interaction.correction.abandonedTail, seed + 11, "erase")
+    : [];
+  const retypeFrames = interaction.correction
+    ? buildTerminalCadence(interaction.correction.replacementTail, seed + 29, "type")
+    : [];
+  const outputFrames = interaction.outputs.map((line, index) => {
+    const base = 3 + Math.min(5, Math.floor(line.length / 18));
+    const jitter = hashSeed(`${seed}|output|${index}|${line}`) % 3;
+    return base + jitter;
+  }).reduce<number[]>((frames, duration) => {
+    const elapsed = (frames.at(-1) ?? 0) + duration;
+    frames.push(elapsed);
+    return frames;
+  }, []);
+  const preErasePause = interaction.correction ? 4 + (seed % 3) : 0;
+  const postErasePause = interaction.correction ? 2 + ((seed >>> 3) % 3) : 0;
+  const submitPause = 4 + ((seed >>> 5) % 3);
+  const outputLeadIn = 2 + ((seed >>> 7) % 2);
+  const finalHold = 8 + ((seed >>> 9) % 4);
+  const totalFrames =
+    (initialTypingFrames.at(-1) ?? 0)
+    + preErasePause
+    + (eraseFrames.at(-1) ?? 0)
+    + postErasePause
+    + (retypeFrames.at(-1) ?? 0)
+    + submitPause
+    + outputLeadIn
+    + (outputFrames.at(-1) ?? 0)
+    + finalHold;
+
+  return {
+    initialCommand,
+    finalCommand,
+    initialTypingFrames,
+    eraseFrames,
+    retypeFrames,
+    outputFrames,
+    preErasePause,
+    postErasePause,
+    submitPause,
+    outputLeadIn,
+    finalHold,
+    totalFrames
+  };
+}
+
+function getCompletedInteractionLines(interaction: TerminalInteraction): string[] {
+  return [`${TERMINAL_PROMPT}${interaction.command}`, ...interaction.outputs];
+}
+
+function getTerminalInteractionState(interaction: TerminalInteraction, timeline: TerminalTimeline, frame: number): string[] {
+  let remaining = frame;
+
+  if (remaining < (timeline.initialTypingFrames.at(-1) ?? 0)) {
+    const typedChars = countVisibleSteps(timeline.initialTypingFrames, remaining);
+    return [`${TERMINAL_PROMPT}${timeline.initialCommand.slice(0, typedChars)}${getTerminalBlink(remaining)}`];
+  }
+
+  remaining -= timeline.initialTypingFrames.at(-1) ?? 0;
+
+  if (interaction.correction) {
+    if (remaining < timeline.preErasePause) {
+      return [`${TERMINAL_PROMPT}${timeline.initialCommand}${getTerminalBlink(remaining)}`];
+    }
+
+    remaining -= timeline.preErasePause;
+
+    if (remaining < (timeline.eraseFrames.at(-1) ?? 0)) {
+      const erasedChars = countVisibleSteps(timeline.eraseFrames, remaining);
+      const visibleLength = timeline.initialCommand.length - erasedChars;
+      return [`${TERMINAL_PROMPT}${timeline.initialCommand.slice(0, visibleLength)}${getTerminalBlink(remaining)}`];
+    }
+
+    remaining -= timeline.eraseFrames.at(-1) ?? 0;
+
+    if (remaining < timeline.postErasePause) {
+      return [`${TERMINAL_PROMPT}${interaction.correction.prefix}${getTerminalBlink(remaining)}`];
+    }
+
+    remaining -= timeline.postErasePause;
+
+    if (remaining < (timeline.retypeFrames.at(-1) ?? 0)) {
+      const typedChars = countVisibleSteps(timeline.retypeFrames, remaining);
+      return [
+        `${TERMINAL_PROMPT}${interaction.correction.prefix}${interaction.correction.replacementTail.slice(0, typedChars)}${getTerminalBlink(remaining)}`
+      ];
+    }
+
+    remaining -= timeline.retypeFrames.at(-1) ?? 0;
+  }
+
+  if (remaining < timeline.submitPause) {
+    return [`${TERMINAL_PROMPT}${timeline.finalCommand}${getTerminalBlink(remaining)}`];
+  }
+
+  remaining -= timeline.submitPause;
+
+  if (remaining < timeline.outputLeadIn) {
+    return [`${TERMINAL_PROMPT}${timeline.finalCommand}`];
+  }
+
+  remaining -= timeline.outputLeadIn;
+
+  if (remaining < (timeline.outputFrames.at(-1) ?? 0)) {
+    const visibleOutputs = countVisibleSteps(timeline.outputFrames, remaining);
+    return [
+      `${TERMINAL_PROMPT}${timeline.finalCommand}`,
+      ...interaction.outputs.slice(0, visibleOutputs)
+    ];
+  }
+
+  remaining -= timeline.outputFrames.at(-1) ?? 0;
+
+  if (remaining < timeline.finalHold) {
+    return getCompletedInteractionLines(interaction);
+  }
+
+  return getCompletedInteractionLines(interaction);
+}
+
 function renderTerminalFrame(context: ScenarioContext): string {
-  const rows = createBlankRows(context.columns, context.rows);
-  const holdFrames = 5;
-  const stepFrames = 1;
-  const durations = TERMINAL_LINES.map((line) => line.length * stepFrames + holdFrames);
-  const cycleDuration = durations.reduce((sum, value) => sum + value, 0);
-  const absoluteFrame = context.frame + (context.seed % cycleDuration);
+  const interactions = Array.from({ length: TERMINAL_INTERACTIONS.length }, (_, index) =>
+    TERMINAL_INTERACTIONS[(index + (context.seed % TERMINAL_INTERACTIONS.length)) % TERMINAL_INTERACTIONS.length] ?? TERMINAL_INTERACTIONS[0]
+  );
+  const timelines = interactions.map((interaction, index) =>
+    buildTerminalTimeline(interaction, hashSeed(`${context.seed}|interaction|${index}|${interaction.command}`))
+  );
+  const cycleDuration = timelines.reduce((sum, timeline) => sum + timeline.totalFrames, 0);
+  const absoluteFrame = context.frame + (context.seed % Math.max(1, cycleDuration));
   const cyclesCompleted = Math.floor(absoluteFrame / cycleDuration);
   let localFrame = absoluteFrame % cycleDuration;
-  let lineIndex = 0;
-  let lineFrame = 0;
-  let completedInCycle = 0;
+  const lines: string[] = [];
 
-  for (let index = 0; index < durations.length; index += 1) {
-    if (localFrame < durations[index]) {
-      lineIndex = index;
-      lineFrame = localFrame;
-      break;
-    }
-
-    localFrame -= durations[index];
-    completedInCycle += 1;
-  }
-
-  const totalCompleted = cyclesCompleted * TERMINAL_LINES.length + completedInCycle;
-  const activeLine = TERMINAL_LINES[lineIndex] ?? TERMINAL_LINES[0];
-  const typedChars = Math.min(activeLine.length, Math.floor(lineFrame / stepFrames));
-  const isHolding = lineFrame >= activeLine.length * stepFrames;
-  const cursor = isHolding ? " " : lineFrame % 2 === 0 ? "_" : " ";
-  const activeVisible = `${activeLine.slice(0, typedChars)}${cursor}`.slice(0, context.columns).padEnd(context.columns, " ");
-  const completedLineCount = Math.max(0, context.rows - 1);
-
-  for (let row = 0; row < completedLineCount; row += 1) {
-    const absoluteIndex = totalCompleted - (completedLineCount - row);
-
-    if (absoluteIndex >= 0) {
-      const line = TERMINAL_LINES[absoluteIndex % TERMINAL_LINES.length] ?? "";
-      stamp(rows, row, 0, line.slice(0, context.columns).padEnd(context.columns, " "));
+  if (cyclesCompleted > 0) {
+    for (const interaction of interactions) {
+      lines.push(...getCompletedInteractionLines(interaction));
     }
   }
 
-  stamp(rows, context.rows - 1, 0, activeVisible);
+  for (let index = 0; index < interactions.length; index += 1) {
+    const interaction = interactions[index] ?? interactions[0];
+    const timeline = timelines[index] ?? timelines[0];
 
-  return renderRows(rows);
+    if (localFrame >= timeline.totalFrames) {
+      lines.push(...getCompletedInteractionLines(interaction));
+      localFrame -= timeline.totalFrames;
+      continue;
+    }
+
+    lines.push(...getTerminalInteractionState(interaction, timeline, localFrame));
+    break;
+  }
+
+  return renderTerminalViewport(lines, context.columns, context.rows);
 }
 
 function createEmptyLifeState(columns: number, rows: number): boolean[][] {
