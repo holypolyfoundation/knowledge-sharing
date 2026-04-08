@@ -89,6 +89,53 @@ graph TD
     expect(manifest.topics[0].slides[0].hasMermaid).toBe(true);
   });
 
+  it("adds syntax highlighting markup for supported code fences", async () => {
+    const root = await mkdtemp(path.join(os.tmpdir(), "knowledge-sharing-"));
+    tempDirectories.push(root);
+    await mkdir(path.join(root, "0-demo"));
+    await writeFile(
+      path.join(root, "0-demo", "0-intro.md"),
+      buildSlide(
+        "Intro",
+        "Highlighted code",
+        `## Example
+\`\`\`js
+const total = values.reduce((sum, value) => sum + value, 0);
+\`\`\``
+      ),
+      "utf8"
+    );
+
+    const manifest = await buildPresentationManifest(root);
+
+    expect(manifest.topics[0].slides[0].html).toContain('<pre class="hljs">');
+    expect(manifest.topics[0].slides[0].html).toContain('class="hljs language-js"');
+    expect(manifest.topics[0].slides[0].html).toContain('class="hljs-keyword"');
+  });
+
+  it("marks markdown-like fences for auto-wrapping", async () => {
+    const root = await mkdtemp(path.join(os.tmpdir(), "knowledge-sharing-"));
+    tempDirectories.push(root);
+    await mkdir(path.join(root, "0-demo"));
+    await writeFile(
+      path.join(root, "0-demo", "0-intro.md"),
+      buildSlide(
+        "Intro",
+        "Wrapped text block",
+        `## Example
+\`\`\`md
+Згенеруй мінімальну монорепу «майже X»: API Gateway, Auth → Profile, Social graph → Profile
+\`\`\``
+      ),
+      "utf8"
+    );
+
+    const manifest = await buildPresentationManifest(root);
+
+    expect(manifest.topics[0].slides[0].html).toContain('class="code-block-wrap hljs"');
+    expect(manifest.topics[0].slides[0].html).toContain('class="hljs language-md"');
+  });
+
   it("preserves null asciiSeed values", async () => {
     const root = await mkdtemp(path.join(os.tmpdir(), "knowledge-sharing-"));
     tempDirectories.push(root);

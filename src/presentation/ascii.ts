@@ -58,8 +58,24 @@ function createBlankRows(columns: number): string[][] {
   return Array.from({ length: ASCII_ROWS }, () => Array.from({ length: columns }, () => " "));
 }
 
+function createFilledRows(columns: number, glyphs: [string, string, string]): string[][] {
+  return glyphs.map((glyph) => Array.from({ length: columns }, () => glyph));
+}
+
 function normalizeColumns(columns: number): number {
   return clamp(columns, 24, 180);
+}
+
+function wrapColumn(column: number, columns: number): number {
+  return ((column % columns) + columns) % columns;
+}
+
+function setWrappedGlyph(rows: string[][], row: number, column: number, glyph: string): void {
+  if (row < 0 || row >= rows.length || glyph.length === 0) {
+    return;
+  }
+
+  rows[row][wrapColumn(column, rows[row].length)] = glyph[0];
 }
 
 function stamp(rows: string[][], row: number, column: number, text: string): void {
@@ -191,6 +207,275 @@ function renderFireFrame(context: ScenarioContext): string {
     const row = 2 - age;
     const column = (origin + direction * age + context.columns) % context.columns;
     rows[row][column] = row === 0 ? "'" : row === 1 ? "*" : ".";
+  }
+
+  return renderRows(rows);
+}
+
+function renderPulseFrame(context: ScenarioContext): string {
+  const rows = [
+    Array.from({ length: context.columns }, () => " "),
+    Array.from({ length: context.columns }, () => "_"),
+    Array.from({ length: context.columns }, () => "_")
+  ];
+  const pulseCenter = (Math.floor(context.frame / 2) + (context.seed % context.columns)) % context.columns;
+
+  setWrappedGlyph(rows, 1, pulseCenter - 4, "/");
+  setWrappedGlyph(rows, 0, pulseCenter - 3, "/");
+  setWrappedGlyph(rows, 0, pulseCenter - 2, "_");
+  setWrappedGlyph(rows, 0, pulseCenter - 1, "\\");
+  setWrappedGlyph(rows, 1, pulseCenter, "\\");
+  setWrappedGlyph(rows, 1, pulseCenter + 1, "_");
+
+  return renderRows(rows);
+}
+
+function renderWavesFrame(context: ScenarioContext): string {
+  const rows = createFilledRows(context.columns, ["-", "-", "_"]);
+  const time = context.frame / ASCII_FPS;
+  const phase = ((context.seed % 2048) / 2048) * Math.PI * 2;
+  let previousRow = 1;
+
+  for (let column = 0; column < context.columns; column += 1) {
+    const position = column / Math.max(5, context.columns / 4);
+    const amplitude = clamp(
+      Math.sin(position * 1.1 + time * 0.8 + phase) + Math.sin(position * 0.36 + time * 0.32 + phase * 0.6) * 0.35,
+      -1,
+      1
+    );
+    const row = amplitude > 0.35 ? 0 : amplitude < -0.35 ? 2 : 1;
+    const glyph = row > previousRow ? "\\" : row < previousRow ? "/" : "~";
+    rows[row][column] = glyph;
+    previousRow = row;
+  }
+
+  return renderRows(rows);
+}
+
+function renderScanlineFrame(context: ScenarioContext): string {
+  const rows = createFilledRows(context.columns, [".", "-", "_"]);
+  const sweep = ((Math.floor(context.frame / 2) + (context.seed % context.columns)) % (context.columns + 10)) - 5;
+
+  for (let row = 0; row < ASCII_ROWS; row += 1) {
+    const start = sweep + row - 1;
+    stamp(rows, row, start - 1, "===");
+    stamp(rows, row, start + 2, "=");
+  }
+
+  return renderRows(rows);
+}
+
+function renderEqualizerFrame(context: ScenarioContext): string {
+  const rows = createFilledRows(context.columns, [".", ".", "."]);
+  const time = context.frame / ASCII_FPS;
+  const segmentWidth = 3;
+  const segmentCount = Math.ceil(context.columns / segmentWidth);
+  const phase = ((context.seed % 4096) / 4096) * Math.PI * 2;
+
+  for (let segment = 0; segment < segmentCount; segment += 1) {
+    const start = segment * segmentWidth;
+    const level = 1 + Math.floor(((Math.sin(time * 2.2 + segment * 0.68 + phase) + 1) / 2) * 2.999);
+
+    for (let fill = 0; fill < Math.min(2, context.columns - start); fill += 1) {
+      if (level >= 1) {
+        rows[2][start + fill] = ":";
+      }
+
+      if (level >= 2) {
+        rows[1][start + fill] = "!";
+      }
+
+      if (level >= 3) {
+        rows[0][start + fill] = "|";
+      }
+    }
+  }
+
+  return renderRows(rows);
+}
+
+function stampSignalPacket(rows: string[][], row: number, head: number): void {
+  const columns = rows[row]?.length ?? 0;
+
+  if (columns === 0) {
+    return;
+  }
+
+  const packet = ["=", "=", "*", ">"];
+
+  for (let index = 0; index < packet.length; index += 1) {
+    rows[row][wrapColumn(head - (packet.length - 1 - index), columns)] = packet[index];
+  }
+}
+
+function renderSignalFrame(context: ScenarioContext): string {
+  const rows = createFilledRows(context.columns, ["=", "-", "="]);
+  const primaryHead = (Math.floor(context.frame / 2) + (context.seed % context.columns)) % context.columns;
+  const secondaryHead = (Math.floor(context.frame / 2) + Math.floor(context.columns / 2) + (context.seed % 13)) % context.columns;
+
+  stampSignalPacket(rows, 0, primaryHead);
+  stampSignalPacket(rows, 2, secondaryHead);
+
+  return renderRows(rows);
+}
+
+function renderRadarFrame(context: ScenarioContext): string {
+  const rows = createFilledRows(context.columns, [".", ".", "."]);
+  const sweep = (Math.floor(context.frame / 2) + (context.seed % context.columns)) % context.columns;
+  const echoA = (Math.floor(context.frame / 3) + Math.floor(context.columns / 3) + (context.seed % 11)) % context.columns;
+  const echoB = (Math.floor(context.frame / 4) + Math.floor((context.columns * 2) / 3) + (context.seed % 17)) % context.columns;
+
+  for (let delta = -2; delta <= 2; delta += 1) {
+    setWrappedGlyph(rows, 1, sweep + delta, "=");
+  }
+
+  setWrappedGlyph(rows, 0, sweep - 1, "/");
+  setWrappedGlyph(rows, 0, sweep, "|");
+  setWrappedGlyph(rows, 2, sweep, "|");
+  setWrappedGlyph(rows, 2, sweep + 1, "\\");
+  setWrappedGlyph(rows, 0, echoA, "*");
+  setWrappedGlyph(rows, 2, echoB, "*");
+
+  return renderRows(rows);
+}
+
+function renderSkylineFrame(context: ScenarioContext): string {
+  const rows = createFilledRows(context.columns, [" ", " ", "_"]);
+  const segmentWidth = 4;
+  const segmentCount = Math.ceil(context.columns / segmentWidth);
+  const time = Math.floor(context.frame / 4);
+
+  for (let segment = 0; segment < segmentCount; segment += 1) {
+    const start = segment * segmentWidth;
+    const seed = hashSeed(`${context.seed}|skyline|${segment}`);
+    const height = 1 + (seed % 3);
+    const lit = ((time + segment + (seed % 5)) % 5) < 2;
+    const roof = lit ? "[]" : "__";
+
+    for (let fill = 0; fill < Math.min(3, context.columns - start); fill += 1) {
+      rows[2][start + fill] = "_";
+    }
+
+    if (height >= 2) {
+      for (let fill = 0; fill < Math.min(2, context.columns - start); fill += 1) {
+        rows[1][start + fill] = lit ? "|" : "]";
+      }
+    }
+
+    if (height >= 3) {
+      for (let fill = 0; fill < Math.min(2, context.columns - start); fill += 1) {
+        rows[0][start + fill] = roof[fill] ?? "_";
+      }
+    } else if (height === 2) {
+      for (let fill = 0; fill < Math.min(2, context.columns - start); fill += 1) {
+        rows[0][start + fill] = lit ? "." : " ";
+      }
+    }
+  }
+
+  return renderRows(rows);
+}
+
+const TERMINAL_LINES = [
+  "> pnpm test",
+  "ok 63 passed",
+  "> pnpm build",
+  "dist ready",
+  "> pnpm validate",
+  "1 topic valid",
+  "> git status",
+  "clean working tree",
+  "> pnpm ascii terminal",
+  "seed updated"
+] as const;
+
+function renderTerminalFrame(context: ScenarioContext): string {
+  const rows = createFilledRows(context.columns, [" ", " ", " "]);
+  const holdFrames = 5;
+  const stepFrames = 1;
+  const durations = TERMINAL_LINES.map((line) => line.length * stepFrames + holdFrames);
+  const cycleDuration = durations.reduce((sum, value) => sum + value, 0);
+  const absoluteFrame = context.frame + (context.seed % cycleDuration);
+  const cyclesCompleted = Math.floor(absoluteFrame / cycleDuration);
+  let localFrame = absoluteFrame % cycleDuration;
+  let lineIndex = 0;
+  let lineFrame = 0;
+  let completedInCycle = 0;
+
+  for (let index = 0; index < durations.length; index += 1) {
+    if (localFrame < durations[index]) {
+      lineIndex = index;
+      lineFrame = localFrame;
+      break;
+    }
+
+    localFrame -= durations[index];
+    completedInCycle += 1;
+  }
+
+  const totalCompleted = cyclesCompleted * TERMINAL_LINES.length + completedInCycle;
+  const visibleIndexes = [totalCompleted - 2, totalCompleted - 1, totalCompleted];
+  const activeLine = TERMINAL_LINES[lineIndex] ?? TERMINAL_LINES[0];
+  const typedChars = Math.min(activeLine.length, Math.floor(lineFrame / stepFrames));
+  const isHolding = lineFrame >= activeLine.length * stepFrames;
+  const cursor = isHolding ? " " : lineFrame % 2 === 0 ? "_" : " ";
+  const activeVisible = `${activeLine.slice(0, typedChars)}${cursor}`.slice(0, context.columns).padEnd(context.columns, " ");
+
+  for (let row = 0; row < 2; row += 1) {
+    const absoluteIndex = visibleIndexes[row];
+
+    if (absoluteIndex < 0) {
+      continue;
+    }
+
+    const line = TERMINAL_LINES[absoluteIndex % TERMINAL_LINES.length] ?? "";
+    stamp(rows, row, 0, line.slice(0, context.columns).padEnd(context.columns, " "));
+  }
+
+  stamp(rows, 2, 0, activeVisible);
+
+  return renderRows(rows);
+}
+
+function renderConveyorFrame(context: ScenarioContext): string {
+  const rows = createFilledRows(context.columns, ["=", "-", "="]);
+  const offset = Math.floor(context.frame / 2) + (context.seed % 9);
+  const spacing = 14;
+
+  for (let index = 0; index < Math.ceil(context.columns / spacing) + 2; index += 1) {
+    const head = wrapColumn(index * spacing + offset, context.columns);
+
+    setWrappedGlyph(rows, 1, head - 4, "[");
+    setWrappedGlyph(rows, 1, head - 3, "=");
+    setWrappedGlyph(rows, 1, head - 2, "=");
+    setWrappedGlyph(rows, 1, head - 1, "]");
+    setWrappedGlyph(rows, 0, head + 1, ">");
+    setWrappedGlyph(rows, 2, head + 2, ">");
+  }
+
+  return renderRows(rows);
+}
+
+function renderConstellationFrame(context: ScenarioContext): string {
+  const rows = createFilledRows(context.columns, [" ", " ", " "]);
+  const clusters = Math.max(3, Math.floor(context.columns / 20));
+  const time = Math.floor(context.frame / 6);
+
+  for (let index = 0; index < clusters; index += 1) {
+    const base = (index * Math.floor(context.columns / clusters) + (context.seed % 7)) % context.columns;
+    const drift = (time + index * 3) % 5;
+    const left = wrapColumn(base + drift, context.columns);
+    const mid = wrapColumn(left + 3, context.columns);
+    const right = wrapColumn(mid + 4, context.columns);
+
+    rows[0][left] = "*";
+    rows[1][mid] = "*";
+    rows[2][right] = "*";
+    rows[1][wrapColumn(left + 1, context.columns)] = "/";
+    rows[1][wrapColumn(left + 2, context.columns)] = "-";
+    rows[1][wrapColumn(mid + 1, context.columns)] = "-";
+    rows[1][wrapColumn(mid + 2, context.columns)] = "\\";
+    rows[0][wrapColumn(right - 1, context.columns)] = ".";
   }
 
   return renderRows(rows);
@@ -393,6 +678,26 @@ function renderScenarioFrame(scenario: AsciiScenario, columns: number, frame: nu
       return renderSpaceshipFrame(context);
     case "fire":
       return renderFireFrame(context);
+    case "pulse":
+      return renderPulseFrame(context);
+    case "waves":
+      return renderWavesFrame(context);
+    case "scanline":
+      return renderScanlineFrame(context);
+    case "equalizer":
+      return renderEqualizerFrame(context);
+    case "signal":
+      return renderSignalFrame(context);
+    case "radar":
+      return renderRadarFrame(context);
+    case "skyline":
+      return renderSkylineFrame(context);
+    case "terminal":
+      return renderTerminalFrame(context);
+    case "conveyor":
+      return renderConveyorFrame(context);
+    case "constellation":
+      return renderConstellationFrame(context);
   }
 }
 

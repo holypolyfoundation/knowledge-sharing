@@ -26,6 +26,7 @@
   "packageManager": "pnpm@10.32.1",
   "dependencies": {
     "gray-matter": "^4.0.3",
+    "highlight.js": "^11.11.1",
     "markdown-it": "^14.1.0",
     "mermaid": "^11.12.0"
   },

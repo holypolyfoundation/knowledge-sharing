@@ -484,8 +484,74 @@ button:focus-visible {
   margin: 18px 0;
   overflow-x: auto;
   border: 1px solid var(--zinc-800);
-  background: rgba(201, 185, 154, 0.02);
-  padding: 14px;
+  background:
+    linear-gradient(180deg, rgba(201, 185, 154, 0.035), rgba(201, 185, 154, 0.015)),
+    rgba(201, 185, 154, 0.02);
+  padding: 14px 16px;
+}
+
+.slide-body pre code {
+  display: block;
+  font-family: var(--font-copy-mono);
+  font-size: 0.95rem;
+  line-height: 1.65;
+  color: var(--zinc-200);
+}
+
+.slide-body pre.code-block-wrap {
+  overflow-x: hidden;
+}
+
+.slide-body pre.code-block-wrap code {
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+
+.slide-body pre.hljs,
+.slide-body code.hljs {
+  color: var(--zinc-200);
+}
+
+.slide-body .hljs-comment,
+.slide-body .hljs-quote {
+  color: var(--zinc-500);
+  font-style: italic;
+}
+
+.slide-body .hljs-keyword,
+.slide-body .hljs-selector-tag,
+.slide-body .hljs-literal,
+.slide-body .hljs-section,
+.slide-body .hljs-link {
+  color: #f2c38a;
+}
+
+.slide-body .hljs-title,
+.slide-body .hljs-title.class_,
+.slide-body .hljs-title.function_ {
+  color: #f6dfb5;
+}
+
+.slide-body .hljs-string,
+.slide-body .hljs-attr,
+.slide-body .hljs-template-tag,
+.slide-body .hljs-template-variable {
+  color: #b8d7a3;
+}
+
+.slide-body .hljs-number,
+.slide-body .hljs-symbol,
+.slide-body .hljs-bullet,
+.slide-body .hljs-variable,
+.slide-body .hljs-variable.language_ {
+  color: #8ccfd1;
+}
+
+.slide-body .hljs-params,
+.slide-body .hljs-subst,
+.slide-body .hljs-type {
+  color: #d8d8de;
 }
 
 .slide-controls {

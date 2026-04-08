@@ -83,6 +83,66 @@ Shared context`,
     expect(parsed.frontmatter.ascii_seed).toBe("fire");
   });
 
+  it("accepts pulse ascii_seed", () => {
+    const parsed = parseSlideMarkdown(buildValidSlide().replace("ascii_seed: zero-one", "ascii_seed: pulse"), "/tmp/0-intro.md");
+
+    expect(parsed.frontmatter.ascii_seed).toBe("pulse");
+  });
+
+  it("accepts waves ascii_seed", () => {
+    const parsed = parseSlideMarkdown(buildValidSlide().replace("ascii_seed: zero-one", "ascii_seed: waves"), "/tmp/0-intro.md");
+
+    expect(parsed.frontmatter.ascii_seed).toBe("waves");
+  });
+
+  it("accepts scanline ascii_seed", () => {
+    const parsed = parseSlideMarkdown(buildValidSlide().replace("ascii_seed: zero-one", "ascii_seed: scanline"), "/tmp/0-intro.md");
+
+    expect(parsed.frontmatter.ascii_seed).toBe("scanline");
+  });
+
+  it("accepts equalizer ascii_seed", () => {
+    const parsed = parseSlideMarkdown(buildValidSlide().replace("ascii_seed: zero-one", "ascii_seed: equalizer"), "/tmp/0-intro.md");
+
+    expect(parsed.frontmatter.ascii_seed).toBe("equalizer");
+  });
+
+  it("accepts signal ascii_seed", () => {
+    const parsed = parseSlideMarkdown(buildValidSlide().replace("ascii_seed: zero-one", "ascii_seed: signal"), "/tmp/0-intro.md");
+
+    expect(parsed.frontmatter.ascii_seed).toBe("signal");
+  });
+
+  it("accepts radar ascii_seed", () => {
+    const parsed = parseSlideMarkdown(buildValidSlide().replace("ascii_seed: zero-one", "ascii_seed: radar"), "/tmp/0-intro.md");
+
+    expect(parsed.frontmatter.ascii_seed).toBe("radar");
+  });
+
+  it("accepts skyline ascii_seed", () => {
+    const parsed = parseSlideMarkdown(buildValidSlide().replace("ascii_seed: zero-one", "ascii_seed: skyline"), "/tmp/0-intro.md");
+
+    expect(parsed.frontmatter.ascii_seed).toBe("skyline");
+  });
+
+  it("accepts terminal ascii_seed", () => {
+    const parsed = parseSlideMarkdown(buildValidSlide().replace("ascii_seed: zero-one", "ascii_seed: terminal"), "/tmp/0-intro.md");
+
+    expect(parsed.frontmatter.ascii_seed).toBe("terminal");
+  });
+
+  it("accepts conveyor ascii_seed", () => {
+    const parsed = parseSlideMarkdown(buildValidSlide().replace("ascii_seed: zero-one", "ascii_seed: conveyor"), "/tmp/0-intro.md");
+
+    expect(parsed.frontmatter.ascii_seed).toBe("conveyor");
+  });
+
+  it("accepts constellation ascii_seed", () => {
+    const parsed = parseSlideMarkdown(buildValidSlide().replace("ascii_seed: zero-one", "ascii_seed: constellation"), "/tmp/0-intro.md");
+
+    expect(parsed.frontmatter.ascii_seed).toBe("constellation");
+  });
+
   it("rejects invalid ascii_seed strings", () => {
     expect(() =>
       parseSlideMarkdown(
@@ -96,7 +156,7 @@ ascii_seed: snake
 Shared context`,
         "/tmp/0-intro.md"
       )
-    ).toThrow('"ascii_seed" must be one of zero-one, spaceship, fire or null.');
+    ).toThrow('"ascii_seed" must be one of zero-one, spaceship, fire, pulse, waves, scanline, equalizer, signal, radar, skyline, terminal, conveyor, constellation or null.');
   });
 
   it("rejects legacy inline ASCII blocks", () => {

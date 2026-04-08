@@ -6,6 +6,13 @@ function characterAt(preview: string, row: number, column: number): string {
   return preview.split("\n")[row]?.[column] ?? " ";
 }
 
+function expectThreeFullWidthRows(preview: string, width: number): string[] {
+  const lines = preview.split("\n");
+  expect(lines).toHaveLength(3);
+  expect(lines.every((line) => line.length === width)).toBe(true);
+  return lines;
+}
+
 describe("renderAsciiPreview", () => {
   it("renders zero-one as exactly three binary rows", () => {
     const preview = renderAsciiPreview("zero-one", {
@@ -124,5 +131,252 @@ describe("renderAsciiPreview", () => {
 
     expect(later).not.toBe(start);
     expect(later.split("\n")[2]).not.toContain(" ");
+  });
+
+  it("renders pulse as a full-width oscilloscope line with a readable spike", () => {
+    const preview = renderAsciiPreview("pulse", {
+      slideTitle: "Signal",
+      summary: "Health pulse"
+    }, 48, 18);
+
+    expectThreeFullWidthRows(preview, 48);
+    expect(preview).toMatch(/^[ _\/\\\n]+$/);
+    expect(preview).toMatch(/[\/\\]/);
+    expect(preview.split("\n")[0]?.trim().length).toBeGreaterThan(0);
+  });
+
+  it("animates pulse across frames", () => {
+    const start = renderAsciiPreview("pulse", {
+      slideTitle: "Signal",
+      summary: "Health pulse"
+    }, 48, 0);
+    const later = renderAsciiPreview("pulse", {
+      slideTitle: "Signal",
+      summary: "Health pulse"
+    }, 48, 8);
+
+    expect(later).not.toBe(start);
+  });
+
+  it("renders waves as a full-width band with repeating wave glyphs", () => {
+    const preview = renderAsciiPreview("waves", {
+      slideTitle: "Ocean",
+      summary: "Motion"
+    }, 48, 18);
+
+    expectThreeFullWidthRows(preview, 48);
+    expect(preview).toMatch(/^[~_\-\/\\\n]+$/);
+    expect(preview).toContain("~");
+  });
+
+  it("animates waves across frames", () => {
+    const start = renderAsciiPreview("waves", {
+      slideTitle: "Ocean",
+      summary: "Motion"
+    }, 48, 0);
+    const later = renderAsciiPreview("waves", {
+      slideTitle: "Ocean",
+      summary: "Motion"
+    }, 48, 8);
+
+    expect(later).not.toBe(start);
+  });
+
+  it("renders scanline as a full-width sweep with a highlighted zone", () => {
+    const preview = renderAsciiPreview("scanline", {
+      slideTitle: "Scanner",
+      summary: "Sweep"
+    }, 48, 18);
+
+    expectThreeFullWidthRows(preview, 48);
+    expect(preview).toMatch(/^[.\-=_\n]+$/);
+    expect(preview).toContain("=");
+  });
+
+  it("animates scanline across frames", () => {
+    const start = renderAsciiPreview("scanline", {
+      slideTitle: "Scanner",
+      summary: "Sweep"
+    }, 48, 0);
+    const later = renderAsciiPreview("scanline", {
+      slideTitle: "Scanner",
+      summary: "Sweep"
+    }, 48, 8);
+
+    expect(later).not.toBe(start);
+  });
+
+  it("renders equalizer as bar stacks with varying heights", () => {
+    const preview = renderAsciiPreview("equalizer", {
+      slideTitle: "Audio",
+      summary: "Levels"
+    }, 48, 18);
+
+    expectThreeFullWidthRows(preview, 48);
+    expect(preview).toMatch(/^[.:!|\n]+$/);
+    expect(preview).toContain("|");
+    expect(preview).toContain("!");
+  });
+
+  it("animates equalizer across frames", () => {
+    const start = renderAsciiPreview("equalizer", {
+      slideTitle: "Audio",
+      summary: "Levels"
+    }, 48, 0);
+    const later = renderAsciiPreview("equalizer", {
+      slideTitle: "Audio",
+      summary: "Levels"
+    }, 48, 6);
+
+    expect(later).not.toBe(start);
+  });
+
+  it("renders signal as directional packets moving across fixed channels", () => {
+    const preview = renderAsciiPreview("signal", {
+      slideTitle: "Transport",
+      summary: "Packets"
+    }, 48, 18);
+
+    expectThreeFullWidthRows(preview, 48);
+    expect(preview).toMatch(/^[\-=*>\n]+$/);
+    expect(preview).toMatch(/[>*]/);
+  });
+
+  it("animates signal across frames", () => {
+    const start = renderAsciiPreview("signal", {
+      slideTitle: "Transport",
+      summary: "Packets"
+    }, 48, 0);
+    const later = renderAsciiPreview("signal", {
+      slideTitle: "Transport",
+      summary: "Packets"
+    }, 48, 6);
+
+    expect(later).not.toBe(start);
+  });
+
+  it("renders radar as a scanning sweep with echoes", () => {
+    const preview = renderAsciiPreview("radar", {
+      slideTitle: "Radar",
+      summary: "Sweep"
+    }, 48, 18);
+
+    expectThreeFullWidthRows(preview, 48);
+    expect(preview).toMatch(/^[.=\/\\|*\n]+$/);
+    expect(preview).toContain("*");
+    expect(preview).toContain("=");
+  });
+
+  it("animates radar across frames", () => {
+    const start = renderAsciiPreview("radar", {
+      slideTitle: "Radar",
+      summary: "Sweep"
+    }, 48, 0);
+    const later = renderAsciiPreview("radar", {
+      slideTitle: "Radar",
+      summary: "Sweep"
+    }, 48, 8);
+
+    expect(later).not.toBe(start);
+  });
+
+  it("renders skyline as a city silhouette with lit structures", () => {
+    const preview = renderAsciiPreview("skyline", {
+      slideTitle: "City",
+      summary: "Night"
+    }, 48, 18);
+
+    expectThreeFullWidthRows(preview, 48);
+    expect(preview).toMatch(/^[ _.\[\]\|\n]+$/);
+    expect(preview).toContain("_");
+    expect(preview).toMatch(/[\[\]|]/);
+  });
+
+  it("animates skyline across frames", () => {
+    const start = renderAsciiPreview("skyline", {
+      slideTitle: "City",
+      summary: "Night"
+    }, 48, 0);
+    const later = renderAsciiPreview("skyline", {
+      slideTitle: "City",
+      summary: "Night"
+    }, 48, 8);
+
+    expect(later).not.toBe(start);
+  });
+
+  it("renders terminal as layered command streams with a prompt", () => {
+    const preview = renderAsciiPreview("terminal", {
+      slideTitle: "Console",
+      summary: "Commands"
+    }, 48, 18);
+
+    expectThreeFullWidthRows(preview, 48);
+    expect(preview).toMatch(/^[ a-z0-9>_\-]+\n[ a-z0-9>_\-]+\n[ a-z0-9>_\-]+$/i);
+    expect(preview).toContain(">");
+    expect(preview).toMatch(/ok|ready|valid|clean|updated/i);
+  });
+
+  it("animates terminal across frames", () => {
+    const start = renderAsciiPreview("terminal", {
+      slideTitle: "Console",
+      summary: "Commands"
+    }, 48, 0);
+    const later = renderAsciiPreview("terminal", {
+      slideTitle: "Console",
+      summary: "Commands"
+    }, 48, 6);
+
+    expect(later).not.toBe(start);
+  });
+
+  it("renders conveyor as moving boxed payloads on rails", () => {
+    const preview = renderAsciiPreview("conveyor", {
+      slideTitle: "Factory",
+      summary: "Flow"
+    }, 48, 18);
+
+    expectThreeFullWidthRows(preview, 48);
+    expect(preview).toMatch(/^[=\-\[\]>\n]+$/);
+    expect(preview).toContain("[");
+    expect(preview).toContain(">");
+  });
+
+  it("animates conveyor across frames", () => {
+    const start = renderAsciiPreview("conveyor", {
+      slideTitle: "Factory",
+      summary: "Flow"
+    }, 48, 0);
+    const later = renderAsciiPreview("conveyor", {
+      slideTitle: "Factory",
+      summary: "Flow"
+    }, 48, 6);
+
+    expect(later).not.toBe(start);
+  });
+
+  it("renders constellation as linked stars across the banner", () => {
+    const preview = renderAsciiPreview("constellation", {
+      slideTitle: "Space",
+      summary: "Map"
+    }, 48, 18);
+
+    expectThreeFullWidthRows(preview, 48);
+    expect(preview).toMatch(/^[ .*\/\\\-\n]+$/);
+    expect(preview).toContain("*");
+    expect(preview).toMatch(/[\/\\-]/);
+  });
+
+  it("animates constellation across frames", () => {
+    const start = renderAsciiPreview("constellation", {
+      slideTitle: "Space",
+      summary: "Map"
+    }, 48, 0);
+    const later = renderAsciiPreview("constellation", {
+      slideTitle: "Space",
+      summary: "Map"
+    }, 48, 6);
+
+    expect(later).not.toBe(start);
   });
 });

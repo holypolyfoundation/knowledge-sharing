@@ -30,6 +30,16 @@ Available non-null values today:
 - `"zero-one"`
 - `"spaceship"`
 - `"fire"`
+- `"pulse"`
+- `"waves"`
+- `"scanline"`
+- `"equalizer"`
+- `"signal"`
+- `"radar"`
+- `"skyline"`
+- `"terminal"`
+- `"conveyor"`
+- `"constellation"`
 
 Body rules:
 - Do not use `#` headings in the slide body
@@ -43,7 +53,7 @@ Body rules:
 - `pnpm build` regenerates the manifest and produces the static GitHub Pages build in `dist/`
 - `pnpm preview` serves the built site locally
 - `pnpm test` runs automated tests
-- `pnpm ascii --slide "<absolute-or-relative-md-path>" --scenario "<zero-one|spaceship|fire|null>"` writes or refreshes `ascii_seed` in frontmatter
+- `pnpm ascii --slide "<absolute-or-relative-md-path>" --scenario "<zero-one|spaceship|fire|pulse|waves|scanline|equalizer|signal|radar|skyline|terminal|conveyor|constellation|null>"` writes or refreshes `ascii_seed` in frontmatter
 
 ## ASCII Guidance
 - The repo skill lives at `.ai/skills/generate-slide-ascii/SKILL.md`

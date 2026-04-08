@@ -28,23 +28,14 @@ export const presentationManifest: PresentationManifest = {
         {
           "id": 2,
           "slug": "retro-enfineering",
-          "title": "Engineering Retro",
-          "summary": "Capture what changed once the first version met real usage.",
-          "asciiSeed": null,
-          "html": "<h2>What We Learned</h2>\n<ul>\n<li>Real users care more about trust and clarity than raw feature count</li>\n<li>Prompt quality and fallback behavior mattered as much as API wiring</li>\n<li>Lightweight docs reduced confusion when the flow changed quickly</li>\n</ul>\n<h2>Retro Angle</h2>\n<p>This slide creates space to discuss the engineering feedback loop instead of pretending the first version was perfect.</p>\n",
-          "hasMermaid": false
+          "title": "Retro vs Modern Engineering",
+          "summary": "",
+          "asciiSeed": "terminal",
+          "html": "<h2>Рутина розробника</h2>\n<h3>5 років тому</h3>\n<div class=\"mermaid\">flowchart TB\n  C((Клієнти))\n  GW[API Gateway / BFF]\n\n  subgraph identity[&quot;Ідентичність і граф&quot;]\n    AUTH[Auth]\n    PROFILE[Профілі]\n    GRAPH[Social graph&lt;br/&gt;підписки]\n  end\n\n  subgraph content[&quot;Контент&quot;]\n    POST[Пости / твіти]\n    MEDIA[Медіа]\n    FEED[Стрічка]\n  end\n\n  subgraph comm[&quot;Пошук і комунікації&quot;]\n    SEARCH[Пошук]\n    NOTIFY[Сповіщення]\n    DM[Direct messages]\n  end\n\n  C --&gt; GW\n  GW --&gt; AUTH &amp; PROFILE &amp; GRAPH &amp; POST &amp; MEDIA &amp; FEED &amp; SEARCH &amp; NOTIFY &amp; DM\n\n  AUTH --&gt; PROFILE\n  GRAPH --&gt; PROFILE\n  POST --&gt; MEDIA\n  FEED --&gt; GRAPH\n  FEED --&gt; POST\n  SEARCH --&gt; POST\n  NOTIFY --&gt; POST\n  NOTIFY --&gt; PROFILE\n  DM --&gt; AUTH\n  DM --&gt; PROFILE</div><h3>Сьогодні</h3>\n<pre class=\"code-block-wrap hljs\"><code class=\"hljs language-md\">Згенеруй систему: API Gateway, Auth → Profile, Social graph → Profile, пости з медіа, стрічка що збирає граф + пости, пошук по постах, сповіщення про пости і профілі, DM з перевіркою auth. Имплементуй проект, зроби його готовим до високого навантаження. Не роби помилок!\n</code></pre>\n<h2>Рутина вайбкодера</h2>\n<h3>5 років тому</h3>\n<h3>Сьогодні</h3>\n<pre class=\"code-block-wrap hljs\"><code class=\"hljs language-md\">Я хочу HFT бота з прибутковою стратегією та без loss. Зроби швидко та без помилок!\n</code></pre>\n",
+          "hasMermaid": true
         },
         {
           "id": 3,
-          "slug": "modern-engineering",
-          "title": "Modern Engineering",
-          "summary": "Reframe software delivery around fast iteration with explicit validation.",
-          "asciiSeed": "zero-one",
-          "html": "<h2>Shift In Practice</h2>\n<p>Modern engineering is not just writing code faster. It is building faster feedback between intent, implementation, verification, and communication.</p>\n<h2>What This Means Here</h2>\n<p>Our Markdown presentation repo mirrors that mindset:</p>\n<ul>\n<li>content is source-controlled</li>\n<li>validation runs automatically</li>\n<li>the renderer is generated from the same source as the talk</li>\n</ul>\n",
-          "hasMermaid": false
-        },
-        {
-          "id": 4,
           "slug": "how-to-prompt",
           "title": "How To Prompt",
           "summary": "Explain the role prompt structure plays in consistent bot behavior.",
@@ -53,7 +44,7 @@ export const presentationManifest: PresentationManifest = {
           "hasMermaid": false
         },
         {
-          "id": 5,
+          "id": 4,
           "slug": "bot-implementation",
           "title": "Bot Implementation",
           "summary": "Walk through the high-level bot architecture and message flow.",
@@ -62,7 +53,7 @@ export const presentationManifest: PresentationManifest = {
           "hasMermaid": true
         },
         {
-          "id": 6,
+          "id": 5,
           "slug": "useful-refs",
           "title": "Useful Refs",
           "summary": "Point the audience to the artifacts that matter after the talk.",
@@ -71,7 +62,7 @@ export const presentationManifest: PresentationManifest = {
           "hasMermaid": false
         },
         {
-          "id": 7,
+          "id": 6,
           "slug": "qa",
           "title": "Q&A",
           "summary": "Close with the questions that usually unlock the next useful conversation.",
