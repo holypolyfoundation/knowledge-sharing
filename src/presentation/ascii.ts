@@ -109,13 +109,17 @@ function fireFlicker(seed: number, row: number, column: number, frame: number): 
   return raw / 4294967295;
 }
 
-function pickFireGlyph(rowProgress: number, intensity: number, draft: number): string {
-  if (rowProgress > 0.82) {
-    const bed = [".", ":", ";", "!", "i", "I", "H", "M", "#", "%", "@"] as const;
-    return bed[Math.min(bed.length - 1, Math.floor(intensity * bed.length))] ?? "@";
+function pickFireGlyph(rowProgress: number, intensity: number, draft: number, core: number): string {
+  if (intensity < 0.06) {
+    return " ";
   }
 
-  if (rowProgress > 0.52 && intensity > 0.62) {
+  if (rowProgress > 0.82) {
+    const bed = [".", ":", ";", "!", "i", "I", "H", "M", "#", "%", "@"] as const;
+    return bed[Math.min(bed.length - 1, Math.floor((intensity + core * 0.18) * bed.length))] ?? "@";
+  }
+
+  if (intensity > 0.56 && core < 0.55) {
     if (draft > 0.24) {
       return "/";
     }
@@ -125,7 +129,7 @@ function pickFireGlyph(rowProgress: number, intensity: number, draft: number): s
     }
   }
 
-  if (rowProgress < 0.35 && intensity > 0.72) {
+  if (rowProgress < 0.35 && intensity > 0.7) {
     if (draft > 0.18) {
       return "/";
     }
@@ -133,6 +137,11 @@ function pickFireGlyph(rowProgress: number, intensity: number, draft: number): s
     if (draft < -0.18) {
       return "\\";
     }
+  }
+
+  if (core > 0.72 && intensity > 0.72) {
+    const coreChars = [":", "!", "i", "I", "*", "%", "M", "#", "@"] as const;
+    return coreChars[Math.min(coreChars.length - 1, Math.floor(intensity * coreChars.length))] ?? "@";
   }
 
   const plume = rowProgress < 0.35
@@ -146,36 +155,57 @@ function renderFireFrame(context: ScenarioContext): string {
   const rows = createBlankRows(context.columns, context.rows);
   const time = context.frame / ASCII_FPS;
   const phase = ((context.seed % 4096) / 4096) * Math.PI * 2;
+  const centerBase = (context.columns - 1) / 2 + Math.sin(time * 0.9 + phase) * context.columns * 0.035;
 
-  for (let column = 0; column < context.columns; column += 1) {
-    const x = column / Math.max(5, context.columns / 11);
-    const slowWave = Math.sin(x * 0.9 - time * 1.6 + phase);
-    const mediumWave = Math.sin(x * 1.8 + time * 2.3 + phase * 0.7);
-    const fastWave = Math.sin(x * 3.7 - time * 4.1 + phase * 1.3);
-    const draft = clamp(slowWave * 0.58 + mediumWave * 0.28 + fastWave * 0.14, -1, 1);
-    const baseHeat = clamp(
-      0.56 + slowWave * 0.2 + mediumWave * 0.16 + fastWave * 0.08 + (fireFlicker(context.seed, 3, column, Math.floor(context.frame / 2)) - 0.5) * 0.18,
-      0,
-      1
-    );
+  for (let row = 0; row < context.rows; row += 1) {
+    const rowProgress = context.rows === 1 ? 1 : row / (context.rows - 1);
+    const lift = 1 - rowProgress;
+    const rowWidth = context.columns * (0.09 + Math.pow(rowProgress, 0.92) * 0.31);
+    const coreWidth = Math.max(2, rowWidth * (0.24 + rowProgress * 0.12));
+    const rowSway = Math.sin(time * 1.3 + row * 0.48 + phase) * context.columns * (0.012 + lift * 0.045);
 
-    for (let row = 0; row < context.rows; row += 1) {
-      const rowProgress = context.rows === 1 ? 1 : row / (context.rows - 1);
-      const rowBoost = rowProgress * 0.6 - 0.26;
-      const rowFlicker = (fireFlicker(context.seed, row, column, context.frame) - 0.5) * 0.16;
-      const intensity = clamp(baseHeat + rowBoost + rowFlicker + Math.max(0, slowWave) * 0.06, 0, 1);
-      rows[row][column] = pickFireGlyph(rowProgress, intensity, draft);
+    for (let column = 0; column < context.columns; column += 1) {
+      const x = column / Math.max(5, context.columns / 11);
+      const normalizedX = column / Math.max(1, context.columns - 1);
+      const slowWave = Math.sin(x * 0.9 - time * 1.6 + phase);
+      const mediumWave = Math.sin(x * 1.8 + time * 2.3 + phase * 0.7);
+      const fastWave = Math.sin(x * 3.7 - time * 4.1 + phase * 1.3);
+      const draft = clamp(slowWave * 0.56 + mediumWave * 0.29 + fastWave * 0.15, -1, 1);
+      const center = centerBase + draft * lift * context.columns * 0.12 + rowSway;
+      const distance = Math.abs(column - center);
+      const envelope = clamp(1 - distance / rowWidth, 0, 1);
+      const core = clamp(1 - distance / coreWidth, 0, 1);
+      const tongue = Math.sin(normalizedX * 18 - time * 4.4 + row * 0.68 + phase) * 0.18
+        + Math.sin(normalizedX * 34 + time * 2.6 - row * 0.35 + phase * 1.7) * 0.1
+        + (fireFlicker(context.seed, row, column, context.frame) - 0.5) * 0.18;
+      const bedHeat = rowProgress > 0.84
+        ? 0.42 + Math.max(0, envelope) * 0.32 + (fireFlicker(context.seed, context.rows + 1, column, Math.floor(context.frame / 2)) - 0.5) * 0.1
+        : 0;
+      const verticalHeat = Math.pow(rowProgress, 0.65);
+      const intensity = clamp(
+        bedHeat
+          + verticalHeat * 0.34
+          + envelope * 0.5
+          + core * 0.34
+          + tongue
+          + Math.max(0, slowWave) * 0.05,
+        0,
+        1
+      );
+
+      rows[row][column] = pickFireGlyph(rowProgress, intensity, draft, core);
     }
   }
 
   const sparkCount = Math.max(2, Math.floor(context.columns / 18));
+  const maxSparkRise = Math.min(Math.max(2, context.rows - 1), 5);
 
   for (let index = 0; index < sparkCount; index += 1) {
     const cadence = 12 + (index % 5) * 3;
     const sparkFrame = context.frame + index * 7 + (context.seed % 9);
     const age = sparkFrame % cadence;
 
-    if (age > 2) {
+    if (age > maxSparkRise) {
       continue;
     }
 
@@ -186,7 +216,7 @@ function renderFireFrame(context: ScenarioContext): string {
     const column = (origin + direction * age + context.columns) % context.columns;
 
     if (row >= 0) {
-      rows[row][column] = row === 0 ? "'" : row === context.rows - 1 ? "." : "*";
+      rows[row][column] = age >= maxSparkRise ? "'" : age === 0 ? "." : age < 3 ? "*" : ":";
     }
   }
 

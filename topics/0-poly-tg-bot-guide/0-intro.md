@@ -2,6 +2,7 @@
 title: "Intro"
 summary: null
 ascii_seed: zero-one
+ascii_height: 5
 ---
 
 #### Хто я?
