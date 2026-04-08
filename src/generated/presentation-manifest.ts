@@ -22,7 +22,7 @@ export const presentationManifest: PresentationManifest = {
           "title": "Plan",
           "summary": "",
           "asciiSeed": "fire",
-          "html": "<ol>\n<li>Ретро vs Сучасний інжинірінг</li>\n<li>Робимо тулінг для себе\n<ol>\n<li>Як спілкуватись з AI?</li>\n<li>Архітектура бота</li>\n</ol>\n</li>\n<li>Q/A</li>\n</ol>\n",
+          "html": "<ol>\n<li>Ретро vs Сучасний інжинірінг</li>\n<li>Робимо тулінг для себе</li>\n<li>Q/A</li>\n</ol>\n",
           "hasMermaid": false
         },
         {
