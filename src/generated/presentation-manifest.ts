@@ -36,6 +36,15 @@ export const presentationManifest: PresentationManifest = {
         },
         {
           "id": 3,
+          "slug": "coding-solved",
+          "title": "Coding is solved. What's next?",
+          "summary": "",
+          "asciiSeed": "game-of-life",
+          "html": "",
+          "hasMermaid": false
+        },
+        {
+          "id": 4,
           "slug": "how-to-prompt",
           "title": "How to ask AI?",
           "summary": "",
@@ -44,7 +53,7 @@ export const presentationManifest: PresentationManifest = {
           "hasMermaid": false
         },
         {
-          "id": 4,
+          "id": 5,
           "slug": "bot-implementation",
           "title": "Bot Implementation",
           "summary": "",
@@ -53,7 +62,7 @@ export const presentationManifest: PresentationManifest = {
           "hasMermaid": false
         },
         {
-          "id": 5,
+          "id": 6,
           "slug": "useful-refs",
           "title": "Useful Refs",
           "summary": "",
@@ -62,7 +71,7 @@ export const presentationManifest: PresentationManifest = {
           "hasMermaid": false
         },
         {
-          "id": 6,
+          "id": 7,
           "slug": "qa",
           "title": "Q&A",
           "summary": "",

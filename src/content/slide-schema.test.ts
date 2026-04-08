@@ -143,6 +143,12 @@ Shared context`,
     expect(parsed.frontmatter.ascii_seed).toBe("constellation");
   });
 
+  it("accepts game-of-life ascii_seed", () => {
+    const parsed = parseSlideMarkdown(buildValidSlide().replace("ascii_seed: zero-one", "ascii_seed: game-of-life"), "/tmp/0-intro.md");
+
+    expect(parsed.frontmatter.ascii_seed).toBe("game-of-life");
+  });
+
   it("rejects invalid ascii_seed strings", () => {
     expect(() =>
       parseSlideMarkdown(
@@ -156,7 +162,7 @@ ascii_seed: snake
 Shared context`,
         "/tmp/0-intro.md"
       )
-    ).toThrow('"ascii_seed" must be one of zero-one, spaceship, fire, pulse, waves, scanline, equalizer, signal, radar, skyline, terminal, conveyor, constellation or null.');
+    ).toThrow('"ascii_seed" must be one of zero-one, spaceship, fire, pulse, waves, scanline, equalizer, signal, radar, skyline, terminal, conveyor, constellation, game-of-life or null.');
   });
 
   it("rejects legacy inline ASCII blocks", () => {

@@ -481,6 +481,65 @@ function renderConstellationFrame(context: ScenarioContext): string {
   return renderRows(rows);
 }
 
+function buildLifeGeneration(columns: number, seed: number, generation: number): boolean[][] {
+  let current = Array.from({ length: ASCII_ROWS }, (_, row) =>
+    Array.from({ length: columns }, (_, column) => {
+      const value = hashSeed(`${seed}|life|${row}|${column}`);
+      return (value & 7) < 3;
+    })
+  );
+
+  for (let step = 0; step < generation; step += 1) {
+    const next = Array.from({ length: ASCII_ROWS }, () => Array.from({ length: columns }, () => false));
+
+    for (let row = 0; row < ASCII_ROWS; row += 1) {
+      for (let column = 0; column < columns; column += 1) {
+        let neighbors = 0;
+
+        for (let rowOffset = -1; rowOffset <= 1; rowOffset += 1) {
+          for (let columnOffset = -1; columnOffset <= 1; columnOffset += 1) {
+            if (rowOffset === 0 && columnOffset === 0) {
+              continue;
+            }
+
+            const nextRow = wrapColumn(row + rowOffset, ASCII_ROWS);
+            const nextColumn = wrapColumn(column + columnOffset, columns);
+
+            if (current[nextRow]?.[nextColumn]) {
+              neighbors += 1;
+            }
+          }
+        }
+
+        next[row][column] = current[row][column] ? neighbors === 2 || neighbors === 3 : neighbors === 3;
+      }
+    }
+
+    current = next;
+  }
+
+  return current;
+}
+
+function renderGameOfLifeFrame(context: ScenarioContext): string {
+  const generation = Math.floor(context.frame / 4);
+  const previous = buildLifeGeneration(context.columns, context.seed, Math.max(0, generation - 1));
+  const current = buildLifeGeneration(context.columns, context.seed, generation);
+  const rows = createFilledRows(context.columns, [".", ".", "."]);
+
+  for (let row = 0; row < ASCII_ROWS; row += 1) {
+    for (let column = 0; column < context.columns; column += 1) {
+      if (current[row][column]) {
+        rows[row][column] = previous[row][column] ? "O" : "o";
+      } else if (previous[row][column]) {
+        rows[row][column] = "+";
+      }
+    }
+  }
+
+  return renderRows(rows);
+}
+
 function renderZeroOneFrame(context: ScenarioContext): string {
   const shift = Math.floor(context.frame / ASCII_FPS);
   const rows = Array.from({ length: ASCII_ROWS }, (_, row) => {
@@ -698,6 +757,8 @@ function renderScenarioFrame(scenario: AsciiScenario, columns: number, frame: nu
       return renderConveyorFrame(context);
     case "constellation":
       return renderConstellationFrame(context);
+    case "game-of-life":
+      return renderGameOfLifeFrame(context);
   }
 }
 

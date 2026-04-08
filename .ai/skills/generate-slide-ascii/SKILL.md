@@ -4,7 +4,7 @@ Use this skill when a slide needs its `ascii_seed` frontmatter set to one of the
 
 ## Inputs
 - `{slide path}`: Path to the target slide Markdown file
-- `{scenario}`: One of `zero-one`, `spaceship`, `fire`, `pulse`, `waves`, `scanline`, `equalizer`, `signal`, `radar`, `skyline`, `terminal`, `conveyor`, `constellation`, or `null`
+- `{scenario}`: One of `zero-one`, `spaceship`, `fire`, `pulse`, `waves`, `scanline`, `equalizer`, `signal`, `radar`, `skyline`, `terminal`, `conveyor`, `constellation`, `game-of-life`, or `null`
 
 ## Goal
 Generate or replace the slide's `ascii_seed` frontmatter value while preserving every other part of the Markdown file.
@@ -19,7 +19,7 @@ Generate or replace the slide's `ascii_seed` frontmatter value while preserving 
 
 ## Workflow
 1. Read `{slide path}`
-2. Validate `{scenario}` against `zero-one`, `spaceship`, `fire`, `pulse`, `waves`, `scanline`, `equalizer`, `signal`, `radar`, `skyline`, `terminal`, `conveyor`, `constellation`, and `null`
+2. Validate `{scenario}` against `zero-one`, `spaceship`, `fire`, `pulse`, `waves`, `scanline`, `equalizer`, `signal`, `radar`, `skyline`, `terminal`, `conveyor`, `constellation`, `game-of-life`, and `null`
 3. Generate one `ascii_seed` value or `null`
 4. Replace the existing `ascii_seed` field if present, otherwise add it to frontmatter
 5. Remove any legacy inline ASCII block from the Markdown body
@@ -29,7 +29,7 @@ Generate or replace the slide's `ascii_seed` frontmatter value while preserving 
 If you need a deterministic local fallback, run:
 
 ```bash
-pnpm ascii --slide "<slide path>" --scenario "<zero-one|spaceship|fire|pulse|waves|scanline|equalizer|signal|radar|skyline|terminal|conveyor|constellation|null>"
+pnpm ascii --slide "<slide path>" --scenario "<zero-one|spaceship|fire|pulse|waves|scanline|equalizer|signal|radar|skyline|terminal|conveyor|constellation|game-of-life|null>"
 ```
 
 That command updates the slide's `ascii_seed` frontmatter in place.

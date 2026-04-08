@@ -36,6 +36,7 @@ describe("parseAsciiScenarioInput", () => {
     expect(parseAsciiScenarioInput("terminal")).toBe("terminal");
     expect(parseAsciiScenarioInput("conveyor")).toBe("conveyor");
     expect(parseAsciiScenarioInput("constellation")).toBe("constellation");
+    expect(parseAsciiScenarioInput("game-of-life")).toBe("game-of-life");
     expect(() => parseAsciiScenarioInput("volcano")).toThrow('Invalid ascii scenario "volcano"');
   });
 });

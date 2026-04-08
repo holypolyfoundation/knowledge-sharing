@@ -379,4 +379,28 @@ describe("renderAsciiPreview", () => {
 
     expect(later).not.toBe(start);
   });
+
+  it("renders game-of-life as a cellular grid with births and survivors", () => {
+    const preview = renderAsciiPreview("game-of-life", {
+      slideTitle: "Life",
+      summary: "Automaton"
+    }, 48, 18);
+
+    expectThreeFullWidthRows(preview, 48);
+    expect(preview).toMatch(/^[.Oo+\n]+$/);
+    expect(preview).toMatch(/[Oo]/);
+  });
+
+  it("animates game-of-life across generations", () => {
+    const start = renderAsciiPreview("game-of-life", {
+      slideTitle: "Life",
+      summary: "Automaton"
+    }, 48, 0);
+    const later = renderAsciiPreview("game-of-life", {
+      slideTitle: "Life",
+      summary: "Automaton"
+    }, 48, 12);
+
+    expect(later).not.toBe(start);
+  });
 });
