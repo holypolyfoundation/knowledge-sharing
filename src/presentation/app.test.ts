@@ -22,7 +22,7 @@ const manifest = {
           id: 1,
           slug: "next-step",
           title: "Next Step",
-          summary: "Second slide",
+          summary: "",
           asciiSeed: null,
           html: "<h2>Plan</h2><p>Keep going</p>",
           hasMermaid: false
@@ -104,6 +104,7 @@ describe("createPresentationApp", () => {
 
     expect(document.querySelector(".stage-heading h1")?.textContent).toBe("Next Step");
     expect(document.querySelector(".slide-ascii")).toBeNull();
+    expect(document.querySelector(".stage-summary")).toBeNull();
     expect((document.querySelector(".nav-button.primary") as HTMLButtonElement).disabled).toBe(true);
   });
 

@@ -12,9 +12,9 @@ This repository turns Markdown topics into a navigable presentation site for Git
 ## Slide Contract
 Each slide must contain:
 1. YAML frontmatter
-2. One or more `##` sections
+2. Optional body content
 
-Required frontmatter:
+Frontmatter:
 ```yaml
 ---
 title: Intro
@@ -22,6 +22,8 @@ summary: What this slide covers
 ascii_seed: "zero-one"
 ---
 ```
+
+`summary` is optional.
 
 `ascii_seed` may also be `null` when a slide should intentionally render without an animated ASCII block.
 Available non-null values today:
@@ -32,10 +34,10 @@ Body rules:
 - Do not use `#` headings in the slide body
 - Do not author inline ASCII wrappers in the Markdown body
 - When `ascii_seed` is non-null, the renderer injects the animated ASCII block before the first `##` section
-- Mermaid code fences are allowed inside sections
+- Mermaid code fences are allowed
 
 ## Commands
-- `pnpm validate` checks topic names, slide names, frontmatter, legacy ASCII removal, and section structure
+- `pnpm validate` checks topic names, slide names, frontmatter, and legacy ASCII removal
 - `pnpm dev` regenerates the manifest and starts the local renderer
 - `pnpm build` regenerates the manifest and produces the static GitHub Pages build in `dist/`
 - `pnpm preview` serves the built site locally

@@ -8,11 +8,10 @@ import { buildPresentationManifest } from "./load-topics.ts";
 
 const tempDirectories: string[] = [];
 
-function buildSlide(title: string, summary: string, body: string): string {
+function buildSlide(title: string, summary: string | null, body: string): string {
   return `---
 title: ${title}
-summary: ${summary}
-ascii_seed: zero-one
+${summary === null ? "" : `summary: ${summary}\n`}ascii_seed: zero-one
 ---
 ${body}
 `;
@@ -110,5 +109,20 @@ Plain content
     const manifest = await buildPresentationManifest(root);
 
     expect(manifest.topics[0].slides[0].asciiSeed).toBeNull();
+  });
+
+  it("defaults missing summary to an empty string", async () => {
+    const root = await mkdtemp(path.join(os.tmpdir(), "knowledge-sharing-"));
+    tempDirectories.push(root);
+    await mkdir(path.join(root, "0-demo"));
+    await writeFile(
+      path.join(root, "0-demo", "0-intro.md"),
+      buildSlide("Intro", null, "## Scene\nPlain content"),
+      "utf8"
+    );
+
+    const manifest = await buildPresentationManifest(root);
+
+    expect(manifest.topics[0].slides[0].summary).toBe("");
   });
 });

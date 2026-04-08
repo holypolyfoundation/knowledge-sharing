@@ -29,6 +29,14 @@ function asNonEmptyString(value: unknown, fieldName: keyof SlideFrontmatter, fil
   return value.trim();
 }
 
+function asOptionalString(value: unknown): string {
+  if (typeof value !== "string") {
+    return "";
+  }
+
+  return value.trim();
+}
+
 function asNullableAsciiSeed(value: unknown, filePath: string): AsciiScenario | null {
   if (value === null || value === undefined) {
     return null;
@@ -103,7 +111,7 @@ export function parseSlideMarkdown(raw: string, filePath: string): ParsedSlide {
   const parsed = matter(raw);
   const frontmatter: SlideFrontmatter = {
     title: asNonEmptyString(parsed.data.title, "title", filePath),
-    summary: asNonEmptyString(parsed.data.summary, "summary", filePath),
+    summary: asOptionalString(parsed.data.summary),
     ascii_seed: asNullableAsciiSeed(parsed.data.ascii_seed, filePath)
   };
   const body = parsed.content.trim();

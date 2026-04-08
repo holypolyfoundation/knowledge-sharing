@@ -180,6 +180,7 @@ function renderSlideView(
 
   const article = document.createElement("article");
   article.className = "slide-stage";
+  const summaryMarkup = slide.summary.length > 0 ? `<p class="stage-summary">${slide.summary}</p>` : "";
   article.innerHTML = `
     <div class="bracket-inner" aria-hidden="true"></div>
     <div class="stage-rails" aria-hidden="true">
@@ -197,7 +198,7 @@ function renderSlideView(
       </div>
       <div class="stage-heading">
         <h1>${slide.title}</h1>
-        <p class="stage-summary">${slide.summary}</p>
+        ${summaryMarkup}
       </div>
     </div>
     ${slide.asciiSeed ? '<div class="slide-ascii" data-slide-ascii></div>' : ""}

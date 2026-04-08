@@ -32,4 +32,4 @@ Add bullets, code blocks, or Mermaid diagrams.
 - Do not author legacy inline ASCII wrappers in slide bodies
 - Set `ascii_seed` to `null`, `"zero-one"`, or `"spaceship"`
 - Prefer `null` when a slide does not clearly benefit from one of the built-in scenarios
-- Every slide needs at least one `##` section
+- `summary` is optional

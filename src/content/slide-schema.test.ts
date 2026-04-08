@@ -44,17 +44,31 @@ graph LR
     expect(parsed.frontmatter.ascii_seed).toBeNull();
   });
 
-  it("rejects missing summary", () => {
-    expect(() =>
-      parseSlideMarkdown(
-        `---
+  it("accepts missing summary", () => {
+    const parsed = parseSlideMarkdown(
+      `---
 title: Intro
 ---
 ## Scene
 Shared context`,
-        "/tmp/0-intro.md"
-      )
-    ).toThrow('missing required frontmatter field "summary"');
+      "/tmp/0-intro.md"
+    );
+
+    expect(parsed.frontmatter.summary).toBe("");
+  });
+
+  it("accepts null summary", () => {
+    const parsed = parseSlideMarkdown(
+      `---
+title: Intro
+summary: null
+---
+## Scene
+Shared context`,
+      "/tmp/0-intro.md"
+    );
+
+    expect(parsed.frontmatter.summary).toBe("");
   });
 
   it("accepts spaceship ascii_seed", () => {
