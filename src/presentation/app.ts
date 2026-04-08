@@ -106,15 +106,7 @@ export function createPresentationApp(options: {
 function renderTopicList(root: HTMLElement, manifest: PresentationManifest): void {
   const shell = document.createElement("main");
   shell.className = "app-shell topic-shell";
-  shell.innerHTML = `
-    <section class="hero-panel">
-      <p class="eyebrow">Markdown Presentations</p>
-      <h1>Choose a topic and step straight into the deck.</h1>
-      <p class="hero-copy">
-        Each topic is compiled from strict Markdown slides with centered ASCII posters and optional Mermaid diagrams.
-      </p>
-    </section>
-  `;
+  shell.innerHTML = ``;
 
   const topicGrid = document.createElement("section");
   topicGrid.className = "topic-grid";
