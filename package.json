@@ -5,12 +5,10 @@
   "type": "module",
   "description": "Markdown-first presentation system with static rendering for GitHub Pages.",
   "scripts": {
-    "predev": "node --import tsx scripts/build-presentation-manifest.mjs",
     "dev": "vite",
-    "prebuild": "node --import tsx scripts/build-presentation-manifest.mjs",
     "build": "vite build",
     "preview": "vite preview",
-    "validate": "node --import tsx scripts/build-presentation-manifest.mjs --validate-only",
+    "validate": "node --import tsx scripts/build-presentation-manifest.mjs",
     "test": "vitest run",
     "ascii": "node --import tsx scripts/generate-slide-ascii.mjs"
   },

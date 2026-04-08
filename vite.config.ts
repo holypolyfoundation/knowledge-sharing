@@ -4,10 +4,13 @@ import path from "node:path";
 import type { Plugin, ViteDevServer } from "vite";
 import { defineConfig } from "vitest/config";
 
+import { buildPresentationManifest } from "./src/content/load-topics.ts";
+import { renderPresentationManifestModule } from "./src/content/presentation-manifest-module.ts";
 import { copyTopicAssets, isTopicAssetFile, resolveTopicAssetPublicPath } from "./src/content/topic-assets.ts";
-import { writePresentationManifest } from "./src/content/presentation-manifest-file.ts";
 
 const repositoryName = process.env.GITHUB_REPOSITORY?.split("/")[1] ?? "knowledge-sharing";
+const PRESENTATION_MANIFEST_ID = "virtual:presentation-manifest";
+const RESOLVED_PRESENTATION_MANIFEST_ID = `\0${PRESENTATION_MANIFEST_ID}`;
 
 function contentTypeForAsset(filePath: string): string {
   const extension = path.extname(filePath).toLowerCase();
@@ -34,9 +37,9 @@ function contentTypeForAsset(filePath: string): string {
 function markdownManifestReloadPlugin(command: "build" | "serve"): Plugin {
   const repoRoot = process.cwd();
   const topicsDirectory = path.join(repoRoot, "topics");
-  const outputFile = path.join(repoRoot, "src/generated/presentation-manifest.ts");
   let rebuildQueue = Promise.resolve();
   let buildOutputDirectory = path.join(repoRoot, "dist");
+  let cachedManifestModule: string | null = null;
 
   const isTopicMarkdownFile = (filePath: string): boolean => {
     const relativePath = path.relative(topicsDirectory, filePath);
@@ -44,10 +47,25 @@ function markdownManifestReloadPlugin(command: "build" | "serve"): Plugin {
     return !relativePath.startsWith("..") && !path.isAbsolute(relativePath) && relativePath.endsWith(".md");
   };
 
+  const refreshManifestModule = async () => {
+    const manifest = await buildPresentationManifest(topicsDirectory);
+    cachedManifestModule = renderPresentationManifestModule(manifest);
+  };
+
+  const invalidateManifestModule = (server: ViteDevServer) => {
+    const module = server.moduleGraph.getModuleById(RESOLVED_PRESENTATION_MANIFEST_ID);
+
+    if (module) {
+      server.moduleGraph.invalidateModule(module);
+    }
+  };
+
   const queueRebuild = (server: ViteDevServer) => {
     rebuildQueue = rebuildQueue.then(async () => {
       try {
-        await writePresentationManifest({ topicsDirectory, outputFile });
+        await refreshManifestModule();
+        invalidateManifestModule(server);
+        server.ws.send({ type: "full-reload" });
       } catch (error) {
         const details = error instanceof Error ? error.message : String(error);
         server.config.logger.error(`Failed to rebuild presentation manifest from Markdown changes.\n${details}`, { error });
@@ -57,11 +75,29 @@ function markdownManifestReloadPlugin(command: "build" | "serve"): Plugin {
 
   return {
     name: "markdown-manifest-reload",
+    resolveId(id) {
+      if (id === PRESENTATION_MANIFEST_ID) {
+        return RESOLVED_PRESENTATION_MANIFEST_ID;
+      }
+
+      return null;
+    },
+    async load(id) {
+      if (id !== RESOLVED_PRESENTATION_MANIFEST_ID) {
+        return null;
+      }
+
+      if (!cachedManifestModule) {
+        await refreshManifestModule();
+      }
+
+      return cachedManifestModule;
+    },
     configResolved(config) {
       buildOutputDirectory = path.resolve(repoRoot, config.build.outDir);
     },
     async buildStart() {
-      await writePresentationManifest({ topicsDirectory, outputFile });
+      await refreshManifestModule();
     },
     async closeBundle() {
       if (command === "build") {

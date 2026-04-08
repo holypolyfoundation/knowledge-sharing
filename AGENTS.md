@@ -56,7 +56,7 @@ Body rules:
 - Preserve the rest of the Markdown file when updating `ascii_seed`
 
 ## Rendering Model
-- Topics are compiled at build time into `src/generated/presentation-manifest.ts`
+- Topics are compiled at dev/build time into an in-memory Vite module exposed as `virtual:presentation-manifest`
 - The presentation UI is a static Vite app with hash routing
 - GitHub Pages deployment uses `.github/workflows/deploy-pages.yml`
 - Mermaid diagrams are rendered client-side after slide mount

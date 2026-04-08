@@ -1,6 +1,6 @@
 import mermaid from "mermaid";
 
-import presentationManifest from "./generated/presentation-manifest.ts";
+import presentationManifest from "virtual:presentation-manifest";
 import { createPresentationApp } from "./presentation/app.ts";
 import "./styles.css";
 
