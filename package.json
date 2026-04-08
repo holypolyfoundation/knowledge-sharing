@@ -1,13 +1,42 @@
 {
   "name": "knowledge-sharing",
   "version": "1.0.0",
-  "description": "",
-  "main": "index.js",
+  "private": true,
+  "type": "module",
+  "description": "Markdown-first presentation system with static rendering for GitHub Pages.",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "predev": "node --import tsx scripts/build-presentation-manifest.mjs",
+    "dev": "vite",
+    "prebuild": "node --import tsx scripts/build-presentation-manifest.mjs",
+    "build": "vite build",
+    "preview": "vite preview",
+    "validate": "node --import tsx scripts/build-presentation-manifest.mjs --validate-only",
+    "test": "vitest run",
+    "ascii": "node --import tsx scripts/generate-slide-ascii.mjs"
   },
-  "keywords": [],
+  "keywords": [
+    "markdown",
+    "presentations",
+    "github-pages",
+    "ascii",
+    "mermaid"
+  ],
   "author": "",
   "license": "ISC",
-  "packageManager": "pnpm@10.32.1"
+  "packageManager": "pnpm@10.32.1",
+  "dependencies": {
+    "gray-matter": "^4.0.3",
+    "markdown-it": "^14.1.0",
+    "mermaid": "^11.12.0"
+  },
+  "devDependencies": {
+    "@types/markdown-it": "^14.1.2",
+    "@types/node": "^24.6.1",
+    "jsdom": "^26.1.0",
+    "type-fest": "^4.41.0",
+    "tsx": "^4.20.5",
+    "typescript": "^5.9.3",
+    "vite": "^7.1.12",
+    "vitest": "^3.2.4"
+  }
 }
