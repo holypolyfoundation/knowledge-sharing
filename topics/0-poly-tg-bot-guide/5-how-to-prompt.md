@@ -1,10 +1,10 @@
 ---
-title: "How to make tooling?"
+title: "How to make something?"
 summary: null
 ascii_seed: null
 ---
 
-## Цикл роботи з AI
+#### Цикл роботи з AI
 
 ```mermaid
 flowchart LR
