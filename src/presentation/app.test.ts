@@ -14,7 +14,8 @@ const manifest = {
           slug: "intro",
           title: "Intro",
           summary: "Opening slide",
-          html: '<div align="center" data-slide-ascii><pre>x</pre></div><h2>Scene</h2><div class="mermaid">graph TD; A-->B;</div>',
+          asciiSeed: "zero-one",
+          html: '<h2>Scene</h2><div class="mermaid">graph TD; A-->B;</div>',
           hasMermaid: true
         },
         {
@@ -22,6 +23,7 @@ const manifest = {
           slug: "next-step",
           title: "Next Step",
           summary: "Second slide",
+          asciiSeed: null,
           html: "<h2>Plan</h2><p>Keep going</p>",
           hasMermaid: false
         }
@@ -71,6 +73,7 @@ describe("createPresentationApp", () => {
     expect(document.querySelector(".telemetry-strip")).toBeNull();
     expect(document.querySelector(".system-header")).toBeNull();
     expect(document.querySelector(".stage-heading h1")?.textContent).toBe("Intro");
+    expect(document.querySelector(".slide-ascii pre")?.textContent?.split("\n")).toHaveLength(3);
     expect(window.location.hash).toContain("/slide/0");
   });
 
@@ -92,6 +95,7 @@ describe("createPresentationApp", () => {
     expect(document.querySelector(".telemetry-strip")).toBeNull();
     expect(document.querySelector(".system-header")).toBeNull();
     expect(document.querySelector(".slide-stage")).not.toBeNull();
+    expect(document.querySelector(".slide-ascii")).not.toBeNull();
     expect((document.querySelector(".nav-button") as HTMLButtonElement).disabled).toBe(true);
 
     (document.querySelector(".nav-button.primary") as HTMLButtonElement).click();
@@ -99,6 +103,7 @@ describe("createPresentationApp", () => {
     await flushUi();
 
     expect(document.querySelector(".stage-heading h1")?.textContent).toBe("Next Step");
+    expect(document.querySelector(".slide-ascii")).toBeNull();
     expect((document.querySelector(".nav-button.primary") as HTMLButtonElement).disabled).toBe(true);
   });
 

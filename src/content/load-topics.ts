@@ -4,6 +4,7 @@ import path from "node:path";
 import MarkdownIt from "markdown-it";
 
 import {
+  type AsciiScenario,
   parseSlideFileName,
   parseSlideMarkdown,
   parseTopicDirectoryName,
@@ -15,6 +16,7 @@ export interface SlideManifest {
   slug: string;
   title: string;
   summary: string;
+  asciiSeed: AsciiScenario | null;
   html: string;
   hasMermaid: boolean;
 }
@@ -101,6 +103,7 @@ export async function buildPresentationManifest(topicsDirectory: string): Promis
         slug: slideMeta.slug,
         title: parsed.frontmatter.title,
         summary: parsed.frontmatter.summary,
+        asciiSeed: parsed.frontmatter.ascii_seed,
         html: markdown.render(parsed.body),
         hasMermaid: parsed.hasMermaid
       });

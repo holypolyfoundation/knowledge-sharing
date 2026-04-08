@@ -4,11 +4,13 @@ export const TOPIC_DIRECTORY_PATTERN = /^(?<id>\d+)-(?<slug>[a-z0-9]+(?:-[a-z0-9
 export const SLIDE_FILE_PATTERN = /^(?<id>\d+)-(?<slug>[a-z0-9]+(?:-[a-z0-9]+)*)\.md$/;
 export const ASCII_BLOCK_PATTERN =
   /<div align="center" data-slide-ascii>\s*<pre>[\s\S]*?<\/pre>\s*<\/div>/g;
+export const ASCII_SCENARIOS = ["zero-one", "spaceship"] as const;
+export type AsciiScenario = (typeof ASCII_SCENARIOS)[number];
 
 export interface SlideFrontmatter {
   title: string;
   summary: string;
-  ascii_prompt: string;
+  ascii_seed: AsciiScenario | null;
 }
 
 export interface ParsedSlide {
@@ -25,6 +27,24 @@ function asNonEmptyString(value: unknown, fieldName: keyof SlideFrontmatter, fil
   }
 
   return value.trim();
+}
+
+function asNullableAsciiSeed(value: unknown, filePath: string): AsciiScenario | null {
+  if (value === null || value === undefined) {
+    return null;
+  }
+
+  if (typeof value !== "string" || value.trim() === "") {
+    throw new Error(`${filePath}: "ascii_seed" must be one of ${ASCII_SCENARIOS.join(", ")} or null.`);
+  }
+
+  const normalized = value.trim();
+
+  if (!ASCII_SCENARIOS.includes(normalized as AsciiScenario)) {
+    throw new Error(`${filePath}: "ascii_seed" must be one of ${ASCII_SCENARIOS.join(", ")} or null.`);
+  }
+
+  return normalized as AsciiScenario;
 }
 
 export function parseTopicDirectoryName(directoryName: string): { id: number; slug: string } {
@@ -75,22 +95,25 @@ export function replaceAsciiBlock(body: string, asciiBlock: string): string {
   return body.replace(ASCII_BLOCK_PATTERN, asciiBlock);
 }
 
+export function stripLegacyAsciiBlocks(body: string): string {
+  return body.replace(ASCII_BLOCK_PATTERN, "").replace(/^\s+/, "");
+}
+
 export function parseSlideMarkdown(raw: string, filePath: string): ParsedSlide {
   const parsed = matter(raw);
   const frontmatter: SlideFrontmatter = {
     title: asNonEmptyString(parsed.data.title, "title", filePath),
     summary: asNonEmptyString(parsed.data.summary, "summary", filePath),
-    ascii_prompt: asNonEmptyString(parsed.data.ascii_prompt, "ascii_prompt", filePath)
+    ascii_seed: asNullableAsciiSeed(parsed.data.ascii_seed, filePath)
   };
   const body = parsed.content.trim();
-  const asciiMatches = [...body.matchAll(ASCII_BLOCK_PATTERN)];
-
-  if (asciiMatches.length !== 1) {
-    throw new Error(`${filePath}: expected exactly one centered ASCII block.`);
-  }
 
   if (/^#\s+/m.test(body)) {
     throw new Error(`${filePath}: slide body must not contain "# " headings; use frontmatter title instead.`);
+  }
+
+  if ([...body.matchAll(ASCII_BLOCK_PATTERN)].length > 0) {
+    throw new Error(`${filePath}: legacy inline ASCII blocks are no longer allowed; use frontmatter "ascii_seed" instead.`);
   }
 
   const sectionMatches = [...body.matchAll(/^##\s+(.+)$/gm)];
@@ -99,18 +122,10 @@ export function parseSlideMarkdown(raw: string, filePath: string): ParsedSlide {
     throw new Error(`${filePath}: slide body must contain at least one "##" section.`);
   }
 
-  const asciiBlock = asciiMatches[0][0];
-  const asciiIndex = asciiMatches[0].index ?? -1;
-  const firstSectionIndex = sectionMatches[0].index ?? Number.MAX_SAFE_INTEGER;
-
-  if (asciiIndex > firstSectionIndex) {
-    throw new Error(`${filePath}: ASCII block must appear before the first section.`);
-  }
-
   return {
     frontmatter,
     body,
-    asciiBlock,
+    asciiBlock: "",
     sections: sectionMatches.map((match) => match[1].trim()),
     hasMermaid: /```mermaid\b/.test(body)
   };

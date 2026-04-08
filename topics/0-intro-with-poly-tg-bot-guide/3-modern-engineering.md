@@ -1,19 +1,8 @@
 ---
-title: Modern Engineering
-summary: Reframe software delivery around fast iteration with explicit validation.
-ascii_prompt: Modern engineering control room with agents and validation loops
+title: "Modern Engineering"
+summary: "Reframe software delivery around fast iteration with explicit validation."
+ascii_seed: "zero-one"
 ---
-<div align="center" data-slide-ascii>
-<pre>+-----------------------------+
-|  code --> tests --> review  |
-|   ^         |         |     |
-|   |         v         v     |
-| prompts <- logs <- deploy   |
-|   \____________________/    |
-|        agent loop           |
-+-----------------------------+</pre>
-</div>
-
 ## Shift In Practice
 Modern engineering is not just writing code faster. It is building faster feedback between intent, implementation, verification, and communication.
 

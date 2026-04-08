@@ -1,4 +1,5 @@
 import type { PresentationManifest, TopicManifest } from "../content/load-topics.ts";
+import { mountAsciiAnimation } from "./ascii.ts";
 
 export interface MermaidAdapter {
   render(container: HTMLElement): Promise<void>;
@@ -68,8 +69,11 @@ export function createPresentationApp(options: {
   mermaidAdapter?: MermaidAdapter;
 }): { destroy: () => void } {
   const { root, manifest, mermaidAdapter } = options;
+  let cleanupAscii = () => {};
 
   const render = async (): Promise<void> => {
+    cleanupAscii();
+    cleanupAscii = () => {};
     root.innerHTML = "";
     const route = parseHash(window.location.hash);
     const topic = findTopic(manifest, route.topicSlug);
@@ -81,11 +85,23 @@ export function createPresentationApp(options: {
 
     const slide = topic.slides.find((item) => item.id === route.slideId) ?? topic.slides[0];
     const slideIndex = topic.slides.findIndex((item) => item.id === slide.id);
+    const currentSlideNumber = slideIndex + 1;
     const previousSlide = slideIndex > 0 ? topic.slides[slideIndex - 1] : null;
     const nextSlide = slideIndex < topic.slides.length - 1 ? topic.slides[slideIndex + 1] : null;
 
-    root.append(renderSlideView(topic, slideIndex + 1, slide, previousSlide?.id ?? null, nextSlide?.id ?? null));
+    root.append(renderSlideView(topic, currentSlideNumber, slide, previousSlide?.id ?? null, nextSlide?.id ?? null));
+    const asciiRoot = root.querySelector<HTMLElement>(".slide-ascii");
     const slideBody = root.querySelector<HTMLElement>(".slide-body");
+
+    if (asciiRoot && slide.asciiSeed) {
+      cleanupAscii = mountAsciiAnimation(asciiRoot, slide.asciiSeed, {
+        topicTitle: topic.title,
+        slideTitle: slide.title,
+        summary: slide.summary,
+        slideId: slide.id,
+        slideNumber: currentSlideNumber
+      });
+    }
 
     if (slideBody && slide.hasMermaid && mermaidAdapter) {
       await mermaidAdapter.render(slideBody);
@@ -101,6 +117,7 @@ export function createPresentationApp(options: {
 
   return {
     destroy: () => {
+      cleanupAscii();
       window.removeEventListener("hashchange", handleHashChange);
       root.innerHTML = "";
     }
@@ -183,6 +200,7 @@ function renderSlideView(
         <p class="stage-summary">${slide.summary}</p>
       </div>
     </div>
+    ${slide.asciiSeed ? '<div class="slide-ascii" data-slide-ascii></div>' : ""}
     <div class="slide-body">${slide.html}</div>
   `;
   article.querySelector<HTMLButtonElement>(".system-control")?.addEventListener("click", () => {

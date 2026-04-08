@@ -10,11 +10,8 @@
 ---
 title: Intro
 summary: Why this topic matters
-ascii_prompt: Futuristic terminal skyline
+ascii_seed: "zero-one"
 ---
-<div align="center" data-slide-ascii>
-<pre>...</pre>
-</div>
 
 ## Situation
 Frame the problem quickly.
@@ -28,10 +25,11 @@ Add bullets, code blocks, or Mermaid diagrams.
 - Lists
 - Code fences
 - Mermaid diagrams inside ` ```mermaid ` fences
-- Inline HTML only when it helps presentation rendering, such as the ASCII wrapper
+- Inline HTML only when it helps presentation rendering
 
 ## Validation reminders
 - No `#` heading in the body
-- Exactly one ASCII block per slide
-- ASCII block must come before the first `##`
+- Do not author legacy inline ASCII wrappers in slide bodies
+- Set `ascii_seed` to `null`, `"zero-one"`, or `"spaceship"`
+- Prefer `null` when a slide does not clearly benefit from one of the built-in scenarios
 - Every slide needs at least one `##` section

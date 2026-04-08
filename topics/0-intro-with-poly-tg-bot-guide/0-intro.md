@@ -1,22 +1,8 @@
 ---
-title: Intro
-summary: Set the stage for why the Poly Telegram bot matters.
-ascii_prompt: Telegram bot speaking to a prediction market in warm terminal style
+title: "Інтро"
+summary: "Хто я?"
+ascii_seed: zero-one
 ---
-<div align="center" data-slide-ascii>
-<pre>+-----------------------------+
-|        .-""""""-.          |
-|      .'  POLY   '.         |
-|     /   BOT HUB   \        |
-|    |  .--------.  |        |
-|    |  |  TG    |  |        |
-|    |  |  <>    |  |        |
-|       |  '----'  |         |
-|     \   market  /          |
-|      '._guide_.'           |
-+-----------------------------+</pre>
-</div>
-
 ## Situation
 We want a presentation format that feels native to engineering work instead of a detached slide deck tool. Markdown keeps authoring fast, versionable, and close to the code that powers the bot itself.
 

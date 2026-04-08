@@ -1,18 +1,8 @@
 ---
-title: Useful Refs
-summary: Point the audience to the artifacts that matter after the talk.
-ascii_prompt: Curated references shelf for a bot project
+title: "Useful Refs"
+summary: "Point the audience to the artifacts that matter after the talk."
+ascii_seed: null
 ---
-<div align="center" data-slide-ascii>
-<pre>+-----------------------------+
-|   [docs] [repo] [runbook]   |
-|   [prompts] [tests] [ops]   |
-|      \    |    /            |
-|       \ curated /           |
-|        \ refs /             |
-+-----------------------------+</pre>
-</div>
-
 ## Reference Set
 - product and planning notes
 - implementation source

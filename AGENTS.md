@@ -12,43 +12,42 @@ This repository turns Markdown topics into a navigable presentation site for Git
 ## Slide Contract
 Each slide must contain:
 1. YAML frontmatter
-2. Exactly one centered ASCII block
-3. One or more `##` sections
+2. One or more `##` sections
 
 Required frontmatter:
 ```yaml
 ---
 title: Intro
 summary: What this slide covers
-ascii_prompt: Futuristic prediction-market bot in terminal style
+ascii_seed: "zero-one"
 ---
 ```
 
+`ascii_seed` may also be `null` when a slide should intentionally render without an animated ASCII block.
+Available non-null values today:
+- `"zero-one"`
+- `"spaceship"`
+
 Body rules:
 - Do not use `#` headings in the slide body
-- The ASCII block must come before the first `##` section
-- Use the exact wrapper below so validation and rendering stay aligned
+- Do not author inline ASCII wrappers in the Markdown body
+- When `ascii_seed` is non-null, the renderer injects the animated ASCII block before the first `##` section
 - Mermaid code fences are allowed inside sections
 
-```html
-<div align="center" data-slide-ascii>
-<pre>...</pre>
-</div>
-```
-
 ## Commands
-- `pnpm validate` checks topic names, slide names, frontmatter, ASCII placement, and section structure
+- `pnpm validate` checks topic names, slide names, frontmatter, legacy ASCII removal, and section structure
 - `pnpm dev` regenerates the manifest and starts the local renderer
 - `pnpm build` regenerates the manifest and produces the static GitHub Pages build in `dist/`
 - `pnpm preview` serves the built site locally
 - `pnpm test` runs automated tests
-- `pnpm ascii --topic "<topic>" --file "<absolute-or-relative-md-path>"` regenerates the slide ASCII block in place
+- `pnpm ascii --slide "<absolute-or-relative-md-path>" --scenario "<zero-one|spaceship|null>"` writes or refreshes `ascii_seed` in frontmatter
 
 ## ASCII Guidance
 - The repo skill lives at `.ai/skills/generate-slide-ascii/SKILL.md`
 - Keep one visual style across the deck
-- Target `150x150` characters when generating new posters with the skill or CLI
-- Preserve the rest of the Markdown file when updating ASCII
+- All animations are exactly 3 lines tall and stretch to the full slide width
+- Prefer `null` unless one of the hardcoded scenarios is a clearly good fit
+- Preserve the rest of the Markdown file when updating `ascii_seed`
 
 ## Rendering Model
 - Topics are compiled at build time into `src/generated/presentation-manifest.ts`

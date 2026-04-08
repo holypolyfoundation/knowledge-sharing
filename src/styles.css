@@ -419,21 +419,49 @@ button:focus-visible {
   color: var(--pearl);
 }
 
-.slide-body [data-slide-ascii] {
+.slide-ascii {
   position: relative;
   margin: 0 auto 30px;
-  overflow-x: auto;
-  padding: 12px 0;
-  border: 0;
-  background: transparent;
-  box-shadow: none;
+  max-width: 1040px;
+  padding: 12px 8px 0;
 }
 
-.slide-body [data-slide-ascii]::after {
-  content: "";
+.slide-ascii-panel {
+  position: relative;
+  overflow: hidden;
+  border: 1px solid rgba(201, 185, 154, 0.1);
+  border-radius: 4px;
+  background: rgba(201, 185, 154, 0.02);
+  padding: 12px;
+  box-shadow: 0 0 40px rgba(201, 185, 154, 0.06);
+}
+
+.slide-ascii pre,
+.slide-ascii-measure {
+  position: relative;
+  z-index: 1;
+  margin: 0;
+  font-family: var(--font-mono);
+  font-size: clamp(8px, 1.15vw, 11px);
+  line-height: 1.55;
+  text-align: left;
+  white-space: pre;
+  color: rgba(201, 185, 154, 0.8);
+  text-shadow: 0 0 6px rgba(201, 185, 154, 0.25);
+}
+
+.slide-ascii pre {
+  display: block;
+  width: 100%;
+  overflow: hidden;
+  min-height: calc(3 * 1.55em);
+}
+
+.slide-ascii-overlay {
   pointer-events: none;
   position: absolute;
   inset: 0;
+  border-radius: 4px;
   background: repeating-linear-gradient(
     0deg,
     transparent,
@@ -443,22 +471,13 @@ button:focus-visible {
   );
 }
 
-.slide-body [data-slide-ascii] pre {
-  position: relative;
-  z-index: 1;
-  margin: 0;
-  display: inline-block;
-  font-family: var(--font-mono);
-  font-size: 10px;
-  line-height: 1.55;
-  text-align: left;
-  white-space: pre;
-  color: rgba(201, 185, 154, 0.8);
-  text-shadow: 0 0 6px rgba(201, 185, 154, 0.25);
+.slide-ascii-measure {
+  position: absolute;
+  visibility: hidden;
 }
 
 .slide-body .mermaid,
-.slide-body pre:not([data-slide-ascii] pre) {
+.slide-body pre {
   margin: 18px 0;
   overflow-x: auto;
   border: 1px solid var(--zinc-800);
@@ -540,6 +559,7 @@ button:focus-visible {
   }
 
   .stage-header,
+  .slide-ascii,
   .slide-body {
     padding-left: 4px;
     padding-right: 4px;
@@ -554,7 +574,7 @@ button:focus-visible {
     min-width: 0;
   }
 
-  .slide-body [data-slide-ascii] pre {
+  .slide-ascii pre {
     font-size: 9px;
   }
 }

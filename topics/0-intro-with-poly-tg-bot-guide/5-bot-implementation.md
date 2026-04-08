@@ -1,20 +1,8 @@
 ---
-title: Bot Implementation
-summary: Walk through the high-level bot architecture and message flow.
-ascii_prompt: Telegram bot implementation diagram with market request flow
+title: "Bot Implementation"
+summary: "Walk through the high-level bot architecture and message flow."
+ascii_seed: null
 ---
-<div align="center" data-slide-ascii>
-<pre>+-----------------------------+
-|  user -> telegram -> bot    |
-|                    |        |
-|                 prompts     |
-|                    |        |
-|                 market api  |
-|                    |        |
-|                 response    |
-+-----------------------------+</pre>
-</div>
-
 ## Flow
 ```mermaid
 flowchart LR

@@ -1,20 +1,8 @@
 ---
-title: Plan
-summary: Show the workstream that turns an idea into a shippable bot.
-ascii_prompt: Structured roadmap board for a market bot deck
+title: "Plan"
+summary: "Show the workstream that turns an idea into a shippable bot."
+ascii_seed: spaceship
 ---
-<div align="center" data-slide-ascii>
-<pre>+-----------------------------+
-| [idea] --> [scope] --> [ui] |
-|    \         |         /    |
-|     \--> [bot flow] --/     |
-|        \    |    /          |
-|         [ship plan]         |
-|          /  |  \            |
-|      [test][ops][docs]      |
-+-----------------------------+</pre>
-</div>
-
 ## Workstream
 The deck follows the same sequence the team follows in code:
 

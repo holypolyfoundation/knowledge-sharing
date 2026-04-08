@@ -1,41 +1,35 @@
-# Generate Slide ASCII
+# Generate Slide ASCII Seed
 
-Use this skill when a slide needs its centered ASCII poster created or refreshed.
+Use this skill when a slide needs its `ascii_seed` frontmatter set to one of the built-in animation scenarios or intentionally cleared.
 
 ## Inputs
-- `{topic}`: Human-readable topic name or slug
-- `{md_file_path}`: Path to the target slide Markdown file
+- `{slide path}`: Path to the target slide Markdown file
+- `{scenario}`: One of `zero-one`, `spaceship`, or `null`
 
 ## Goal
-Generate or replace the slide's centered ASCII block in-place while preserving every other part of the Markdown file.
+Generate or replace the slide's `ascii_seed` frontmatter value while preserving every other part of the Markdown file.
 
 ## Requirements
-- Use the exact wrapper:
-
-```html
-<div align="center" data-slide-ascii>
-<pre>...</pre>
-</div>
-```
-
-- Keep the style consistent across all slides in the repo
-- Target `150x150` characters
-- Center the poster visually in Markdown preview
-- Make the ASCII image clearly related to the slide topic and title
-- Keep output ASCII-only unless the file already uses other characters
+- Read the selected slide directly to derive context from its `title`, `summary`, and current body
+- Write exactly one `ascii_seed` frontmatter field
+- Allow `ascii_seed: null` when the requested slide should intentionally render without an animated ASCII block
+- Remove any legacy inline ASCII wrapper if it still exists in the file
+- Preserve section content, Mermaid blocks, spacing rhythm, and unrelated frontmatter
+- Do not generate custom logic or expressions; only write the supported scenario key or `null`
 
 ## Workflow
-1. Read the target slide frontmatter and body
-2. Use `title`, `summary`, and `ascii_prompt` as the creative brief
-3. Generate one poster only
-4. Replace the existing ASCII block if present, otherwise insert it immediately before the first `##` section
-5. Preserve section content, Mermaid blocks, spacing rhythm, and frontmatter
+1. Read `{slide path}`
+2. Validate `{scenario}` against `zero-one`, `spaceship`, and `null`
+3. Generate one `ascii_seed` value or `null`
+4. Replace the existing `ascii_seed` field if present, otherwise add it to frontmatter
+5. Remove any legacy inline ASCII block from the Markdown body
+6. Preserve the rest of the document
 
 ## CLI fallback
 If you need a deterministic local fallback, run:
 
 ```bash
-pnpm ascii --topic "<topic>" --file "<md_file_path>"
+pnpm ascii --slide "<slide path>" --scenario "<zero-one|spaceship|null>"
 ```
 
-That command rewrites the slide's ASCII block in the repo's standard wrapper.
+That command updates the slide's `ascii_seed` frontmatter in place.

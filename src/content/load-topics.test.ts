@@ -12,14 +12,8 @@ function buildSlide(title: string, summary: string, body: string): string {
   return `---
 title: ${title}
 summary: ${summary}
-ascii_prompt: ${title} prompt
+ascii_seed: zero-one
 ---
-<div align="center" data-slide-ascii>
-<pre>+-+
-|*|
-+-+</pre>
-</div>
-
 ${body}
 `;
 }
@@ -59,6 +53,7 @@ describe("buildPresentationManifest", () => {
     expect(manifest.topics.map((topic) => topic.id)).toEqual([2, 10]);
     expect(manifest.topics[0].slides.map((slide) => slide.id)).toEqual([3, 8]);
     expect(manifest.topics[0].title).toBe("Earlier");
+    expect(manifest.topics[0].slides[0].asciiSeed).toBe("zero-one");
   });
 
   it("rejects duplicate slide ids inside one topic", async () => {
@@ -93,5 +88,27 @@ graph TD
 
     expect(manifest.topics[0].slides[0].html).toContain('class="mermaid"');
     expect(manifest.topics[0].slides[0].hasMermaid).toBe(true);
+  });
+
+  it("preserves null asciiSeed values", async () => {
+    const root = await mkdtemp(path.join(os.tmpdir(), "knowledge-sharing-"));
+    tempDirectories.push(root);
+    await mkdir(path.join(root, "0-demo"));
+    await writeFile(
+      path.join(root, "0-demo", "0-intro.md"),
+      `---
+title: Intro
+summary: No animation
+ascii_seed: null
+---
+## Scene
+Plain content
+`,
+      "utf8"
+    );
+
+    const manifest = await buildPresentationManifest(root);
+
+    expect(manifest.topics[0].slides[0].asciiSeed).toBeNull();
   });
 });
