@@ -15,12 +15,18 @@ mermaid.initialize({
   theme: "base",
   securityLevel: "loose",
   themeVariables: {
-    primaryColor: "#f0c25b",
-    primaryTextColor: "#1c1208",
-    primaryBorderColor: "#8b5e1a",
-    lineColor: "#8b5e1a",
-    tertiaryColor: "#fff4d2",
-    fontFamily: "Source Sans 3, sans-serif"
+    background: "#000000",
+    primaryColor: "#09090b",
+    primaryTextColor: "#f4f4f5",
+    primaryBorderColor: "#c9b99a",
+    lineColor: "#c9b99a",
+    secondaryColor: "#18181b",
+    tertiaryColor: "#09090b",
+    mainBkg: "#000000",
+    nodeBkg: "#09090b",
+    clusterBkg: "#09090b",
+    edgeLabelBackground: "#000000",
+    fontFamily: '"GeistMono", ui-monospace, monospace'
   }
 });
 

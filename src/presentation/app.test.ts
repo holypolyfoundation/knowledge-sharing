@@ -50,7 +50,10 @@ describe("createPresentationApp", () => {
 
     await flushUi();
 
-    expect(document.querySelector(".topic-card")?.textContent).toContain("Demo");
+    expect(document.querySelector(".telemetry-strip")).toBeNull();
+    expect(document.querySelector(".system-header")).toBeNull();
+    expect(document.querySelector(".hud-intro")).toBeNull();
+    expect(document.querySelector(".topic-module")?.textContent).toContain("Demo");
   });
 
   it("opens the first slide when a topic is selected", async () => {
@@ -61,11 +64,13 @@ describe("createPresentationApp", () => {
     });
 
     await flushUi();
-    (document.querySelector(".topic-card") as HTMLButtonElement).click();
+    (document.querySelector(".topic-module") as HTMLButtonElement).click();
     window.dispatchEvent(new HashChangeEvent("hashchange"));
     await flushUi();
 
-    expect(document.querySelector(".slide-meta h1")?.textContent).toBe("Intro");
+    expect(document.querySelector(".telemetry-strip")).toBeNull();
+    expect(document.querySelector(".system-header")).toBeNull();
+    expect(document.querySelector(".stage-heading h1")?.textContent).toBe("Intro");
     expect(window.location.hash).toContain("/slide/0");
   });
 
@@ -84,13 +89,16 @@ describe("createPresentationApp", () => {
 
     await flushUi();
     expect(mermaidRender).toHaveBeenCalledTimes(1);
+    expect(document.querySelector(".telemetry-strip")).toBeNull();
+    expect(document.querySelector(".system-header")).toBeNull();
+    expect(document.querySelector(".slide-stage")).not.toBeNull();
     expect((document.querySelector(".nav-button") as HTMLButtonElement).disabled).toBe(true);
 
     (document.querySelector(".nav-button.primary") as HTMLButtonElement).click();
     window.dispatchEvent(new HashChangeEvent("hashchange"));
     await flushUi();
 
-    expect(document.querySelector(".slide-meta h1")?.textContent).toBe("Next Step");
+    expect(document.querySelector(".stage-heading h1")?.textContent).toBe("Next Step");
     expect((document.querySelector(".nav-button.primary") as HTMLButtonElement).disabled).toBe(true);
   });
 
@@ -105,6 +113,6 @@ describe("createPresentationApp", () => {
 
     await flushUi();
 
-    expect(document.querySelector(".slide-meta h1")?.textContent).toBe("Next Step");
+    expect(document.querySelector(".stage-heading h1")?.textContent).toBe("Next Step");
   });
 });
