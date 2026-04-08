@@ -481,57 +481,152 @@ function renderConstellationFrame(context: ScenarioContext): string {
   return renderRows(rows);
 }
 
-function buildLifeGeneration(columns: number, seed: number, generation: number): boolean[][] {
-  let current = Array.from({ length: ASCII_ROWS }, (_, row) =>
+function createEmptyLifeState(columns: number): boolean[][] {
+  return Array.from({ length: ASCII_ROWS }, () => Array.from({ length: columns }, () => false));
+}
+
+function cloneLifeState(rows: boolean[][]): boolean[][] {
+  return rows.map((row) => [...row]);
+}
+
+function hasLiveCells(rows: boolean[][]): boolean {
+  return rows.some((row) => row.some(Boolean));
+}
+
+function lifeStatesEqual(left: boolean[][], right: boolean[][]): boolean {
+  return left.every((row, rowIndex) => row.every((cell, columnIndex) => cell === right[rowIndex]?.[columnIndex]));
+}
+
+function serializeLifeState(rows: boolean[][]): string {
+  return rows.map((row) => row.map((cell) => (cell ? "1" : "0")).join("")).join("|");
+}
+
+function buildInitialLifeState(columns: number, seed: number, epoch: number): boolean[][] {
+  const epochSeed = hashSeed(`${seed}|life-epoch|${epoch}`);
+  const rows = Array.from({ length: ASCII_ROWS }, (_, row) =>
     Array.from({ length: columns }, (_, column) => {
-      const value = hashSeed(`${seed}|life|${row}|${column}`);
-      return (value & 7) < 3;
+      const noise = hashSeed(`${epochSeed}|life|${row}|${column}`);
+      const horizontalWeight = Math.sin((column / Math.max(6, columns / 5)) + ((epochSeed % 1024) / 1024) * Math.PI * 2);
+      const threshold = column > 1 && column < columns - 2 ? (horizontalWeight > 0 ? 4 : 3) : 2;
+      return (noise & 7) < threshold;
     })
   );
 
-  for (let step = 0; step < generation; step += 1) {
-    const next = Array.from({ length: ASCII_ROWS }, () => Array.from({ length: columns }, () => false));
+  const patternCount = Math.max(3, Math.floor(columns / 18));
 
-    for (let row = 0; row < ASCII_ROWS; row += 1) {
-      for (let column = 0; column < columns; column += 1) {
-        let neighbors = 0;
+  for (let index = 0; index < patternCount; index += 1) {
+    const anchor = 2 + ((index * Math.max(7, Math.floor(columns / patternCount))) + (epochSeed % 11)) % Math.max(3, columns - 4);
+    const style = hashSeed(`${epochSeed}|life-pattern|${index}`) % 3;
 
-        for (let rowOffset = -1; rowOffset <= 1; rowOffset += 1) {
-          for (let columnOffset = -1; columnOffset <= 1; columnOffset += 1) {
-            if (rowOffset === 0 && columnOffset === 0) {
-              continue;
-            }
-
-            const nextRow = wrapColumn(row + rowOffset, ASCII_ROWS);
-            const nextColumn = wrapColumn(column + columnOffset, columns);
-
-            if (current[nextRow]?.[nextColumn]) {
-              neighbors += 1;
-            }
-          }
-        }
-
-        next[row][column] = current[row][column] ? neighbors === 2 || neighbors === 3 : neighbors === 3;
-      }
+    switch (style) {
+      case 0:
+        rows[0][anchor - 1] = true;
+        rows[1][anchor] = true;
+        rows[2][anchor - 1] = true;
+        rows[2][anchor] = true;
+        rows[2][anchor + 1] = true;
+        break;
+      case 1:
+        rows[0][anchor] = true;
+        rows[0][anchor + 1] = true;
+        rows[1][anchor - 1] = true;
+        rows[1][anchor] = true;
+        rows[2][anchor] = true;
+        rows[2][anchor + 1] = true;
+        break;
+      default:
+        rows[0][anchor - 1] = true;
+        rows[0][anchor + 1] = true;
+        rows[1][anchor - 1] = true;
+        rows[1][anchor] = true;
+        rows[1][anchor + 1] = true;
+        rows[2][anchor] = true;
+        break;
     }
-
-    current = next;
   }
 
-  return current;
+  return rows;
+}
+
+function evolveLifeState(current: boolean[][], columns: number): boolean[][] {
+  const next = createEmptyLifeState(columns);
+
+  for (let row = 0; row < ASCII_ROWS; row += 1) {
+    for (let column = 0; column < columns; column += 1) {
+      let neighbors = 0;
+
+      for (let rowOffset = -1; rowOffset <= 1; rowOffset += 1) {
+        for (let columnOffset = -1; columnOffset <= 1; columnOffset += 1) {
+          if (rowOffset === 0 && columnOffset === 0) {
+            continue;
+          }
+
+          const nextRow = row + rowOffset;
+          const nextColumn = column + columnOffset;
+
+          if (nextRow < 0 || nextRow >= ASCII_ROWS || nextColumn < 0 || nextColumn >= columns) {
+            continue;
+          }
+
+          if (current[nextRow]?.[nextColumn]) {
+            neighbors += 1;
+          }
+        }
+      }
+
+      next[row][column] = current[row][column] ? neighbors === 2 || neighbors === 3 : neighbors === 3;
+    }
+  }
+
+  return next;
+}
+
+function buildLifeGeneration(columns: number, seed: number, generation: number): { previous: boolean[][]; current: boolean[][] } {
+  let epoch = 0;
+  let previous = createEmptyLifeState(columns);
+  let current = buildInitialLifeState(columns, seed, epoch);
+  let seenStates = new Set([serializeLifeState(current)]);
+
+  if (generation === 0) {
+    return {
+      previous,
+      current
+    };
+  }
+
+  for (let step = 0; step < generation; step += 1) {
+    const next = evolveLifeState(current, columns);
+    const nextSignature = serializeLifeState(next);
+
+    if (!hasLiveCells(next) || lifeStatesEqual(next, current) || seenStates.has(nextSignature)) {
+      epoch += 1;
+      previous = createEmptyLifeState(columns);
+      current = buildInitialLifeState(columns, seed, epoch);
+      seenStates = new Set([serializeLifeState(current)]);
+      continue;
+    }
+
+    previous = cloneLifeState(current);
+    current = next;
+    seenStates.add(nextSignature);
+  }
+
+  return {
+    previous,
+    current
+  };
 }
 
 function renderGameOfLifeFrame(context: ScenarioContext): string {
-  const generation = Math.floor(context.frame / 4);
-  const previous = buildLifeGeneration(context.columns, context.seed, Math.max(0, generation - 1));
-  const current = buildLifeGeneration(context.columns, context.seed, generation);
+  const generation = Math.floor(context.frame / 2);
+  const state = buildLifeGeneration(context.columns, context.seed, generation);
   const rows = createFilledRows(context.columns, [".", ".", "."]);
 
   for (let row = 0; row < ASCII_ROWS; row += 1) {
     for (let column = 0; column < context.columns; column += 1) {
-      if (current[row][column]) {
-        rows[row][column] = previous[row][column] ? "O" : "o";
-      } else if (previous[row][column]) {
+      if (state.current[row][column]) {
+        rows[row][column] = state.previous[row][column] ? "O" : "o";
+      } else if (state.previous[row][column]) {
         rows[row][column] = "+";
       }
     }

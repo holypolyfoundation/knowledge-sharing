@@ -403,4 +403,30 @@ describe("renderAsciiPreview", () => {
 
     expect(later).not.toBe(start);
   });
+
+  it("reinitializes game-of-life when a generation freezes", () => {
+    const generations = Array.from({ length: 40 }, (_, index) =>
+      renderAsciiPreview("game-of-life", {
+        slideTitle: "Life",
+        summary: "Automaton"
+      }, 24, index * 2)
+    );
+
+    for (let index = 1; index < generations.length; index += 1) {
+      expect(generations[index]).not.toBe(generations[index - 1]);
+    }
+  });
+
+  it("reinitializes game-of-life when a short oscillator repeats", () => {
+    const generations = Array.from({ length: 40 }, (_, index) =>
+      renderAsciiPreview("game-of-life", {
+        slideTitle: "Life",
+        summary: "Automaton"
+      }, 24, index * 2)
+    );
+
+    for (let index = 2; index < generations.length; index += 1) {
+      expect(generations[index]).not.toBe(generations[index - 2]);
+    }
+  });
 });

@@ -40,8 +40,8 @@ export const presentationManifest: PresentationManifest = {
           "title": "Coding is solved. What's next?",
           "summary": "",
           "asciiSeed": "game-of-life",
-          "html": "",
-          "hasMermaid": false
+          "html": "<h2>Сьогодні кодити можуть всі, але</h2>\n<ol>\n<li>Що робити з кодом?</li>\n<li>Як запускати?</li>\n<li>Де запускати?</li>\n<li>Як скейлити?</li>\n<li>Як дебажити?</li>\n</ol>\n<p>Тут ми і стикаємось з реальністю</p>\n<br />\n<h3>SDLC (DevOps)</h3>\n<div class=\"mermaid\">flowchart LR\n    P[Plan] --&gt; Co[Code] --&gt; Bu[Build] --&gt; Te[Test]\n    Te --&gt; R[Release]\n    R --&gt; De[Deploy] --&gt; Op[Operate] --&gt; M[Monitor]\n    M --&gt; P</div><h2>Сучасний тулінг для розробки</h2>\n<ol>\n<li>Anthropic -&gt; Claude -&gt; Claude Code ($20 base subscription)</li>\n<li>OpenAI -&gt; ChatGPT -&gt; Codex ($20 base subscription)</li>\n<li>Anysphere -&gt; Cursor ($20 base subscription)</li>\n<li>Alphabet -&gt; Gemini -&gt; Antigravity ($20 base subscription)</li>\n</ol>\n",
+          "hasMermaid": true
         },
         {
           "id": 4,
