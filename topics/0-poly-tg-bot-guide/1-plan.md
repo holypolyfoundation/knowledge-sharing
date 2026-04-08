@@ -1,15 +1,10 @@
 ---
-title: "Plan"
-summary: "Show the workstream that turns an idea into a shippable bot."
-ascii_seed: spaceship
+title: "План"
+summary: null
+ascii_seed: fire
 ---
-## Workstream
-The deck follows the same sequence the team follows in code:
 
-- decide the user outcome
-- shape the prompts and system behavior
-- implement the bot flow
-- verify the quality and rollout path
-
-## What Good Looks Like
-By the end of the topic, the audience should understand both the product idea and the engineering discipline that made it reliable.
+1. Ретро інжинірінг
+2. Сучасний інжинірінг
+3. Робимо тулінг для себе
+4. Рефи (розкажу про заготовки і як користуватись)

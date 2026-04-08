@@ -4,7 +4,7 @@ export const TOPIC_DIRECTORY_PATTERN = /^(?<id>\d+)-(?<slug>[a-z0-9]+(?:-[a-z0-9
 export const SLIDE_FILE_PATTERN = /^(?<id>\d+)-(?<slug>[a-z0-9]+(?:-[a-z0-9]+)*)\.md$/;
 export const ASCII_BLOCK_PATTERN =
   /<div align="center" data-slide-ascii>\s*<pre>[\s\S]*?<\/pre>\s*<\/div>/g;
-export const ASCII_SCENARIOS = ["zero-one", "spaceship"] as const;
+export const ASCII_SCENARIOS = ["zero-one", "spaceship", "fire"] as const;
 export type AsciiScenario = (typeof ASCII_SCENARIOS)[number];
 
 export interface SlideFrontmatter {

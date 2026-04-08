@@ -98,4 +98,31 @@ describe("renderAsciiPreview", () => {
 
     expect(crashFrame).not.toBeNull();
   });
+
+  it("renders fire as a full-width three-row flame field", () => {
+    const preview = renderAsciiPreview("fire", {
+      slideTitle: "Intro",
+      summary: "Opening slide"
+    }, 48, 18);
+    const lines = preview.split("\n");
+
+    expect(lines).toHaveLength(3);
+    expect(lines.every((line) => line.length === 48)).toBe(true);
+    expect(lines[2]).not.toContain(" ");
+    expect(preview).toMatch(/^[ .:'`^*!/\\%;iIHM#@\n]+$/);
+  });
+
+  it("animates fire between frames while keeping the ember bed dense", () => {
+    const start = renderAsciiPreview("fire", {
+      slideTitle: "Intro",
+      summary: "Opening slide"
+    }, 48, 0);
+    const later = renderAsciiPreview("fire", {
+      slideTitle: "Intro",
+      summary: "Opening slide"
+    }, 48, 6);
+
+    expect(later).not.toBe(start);
+    expect(later.split("\n")[2]).not.toContain(" ");
+  });
 });

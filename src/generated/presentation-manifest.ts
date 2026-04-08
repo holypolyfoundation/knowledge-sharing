@@ -4,8 +4,8 @@ export const presentationManifest: PresentationManifest = {
   "topics": [
     {
       "id": 0,
-      "slug": "intro-with-poly-tg-bot-guide",
-      "title": "Intro With Poly Tg Bot Guide",
+      "slug": "poly-tg-bot-guide",
+      "title": "Poly Tg Bot Guide",
       "slides": [
         {
           "id": 0,
@@ -19,15 +19,15 @@ export const presentationManifest: PresentationManifest = {
         {
           "id": 1,
           "slug": "plan",
-          "title": "Plan",
-          "summary": "Show the workstream that turns an idea into a shippable bot.",
-          "asciiSeed": "spaceship",
-          "html": "<h2>Workstream</h2>\n<p>The deck follows the same sequence the team follows in code:</p>\n<ul>\n<li>decide the user outcome</li>\n<li>shape the prompts and system behavior</li>\n<li>implement the bot flow</li>\n<li>verify the quality and rollout path</li>\n</ul>\n<h2>What Good Looks Like</h2>\n<p>By the end of the topic, the audience should understand both the product idea and the engineering discipline that made it reliable.</p>\n",
+          "title": "План",
+          "summary": "",
+          "asciiSeed": "fire",
+          "html": "<ol>\n<li>Ретро інжинірінг</li>\n<li>Сучасний інжинірінг</li>\n<li>Робимо тулінг для себе</li>\n<li>Рефи (розкажу про заготовки і як користуватись)</li>\n</ol>\n",
           "hasMermaid": false
         },
         {
           "id": 2,
-          "slug": "engineering-retro",
+          "slug": "retro-enfineering",
           "title": "Engineering Retro",
           "summary": "Capture what changed once the first version met real usage.",
           "asciiSeed": null,

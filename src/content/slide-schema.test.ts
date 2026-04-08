@@ -77,6 +77,12 @@ Shared context`,
     expect(parsed.frontmatter.ascii_seed).toBe("spaceship");
   });
 
+  it("accepts fire ascii_seed", () => {
+    const parsed = parseSlideMarkdown(buildValidSlide().replace("ascii_seed: zero-one", "ascii_seed: fire"), "/tmp/0-intro.md");
+
+    expect(parsed.frontmatter.ascii_seed).toBe("fire");
+  });
+
   it("rejects invalid ascii_seed strings", () => {
     expect(() =>
       parseSlideMarkdown(
@@ -90,7 +96,7 @@ ascii_seed: snake
 Shared context`,
         "/tmp/0-intro.md"
       )
-    ).toThrow('"ascii_seed" must be one of zero-one, spaceship or null.');
+    ).toThrow('"ascii_seed" must be one of zero-one, spaceship, fire or null.');
   });
 
   it("rejects legacy inline ASCII blocks", () => {

@@ -25,6 +25,7 @@ describe("parseAsciiScenarioInput", () => {
   it("accepts the supported scenario keys and rejects others", () => {
     expect(parseAsciiScenarioInput("zero-one")).toBe("zero-one");
     expect(parseAsciiScenarioInput("spaceship")).toBe("spaceship");
+    expect(parseAsciiScenarioInput("fire")).toBe("fire");
     expect(() => parseAsciiScenarioInput("radar")).toThrow('Invalid ascii scenario "radar"');
   });
 });
