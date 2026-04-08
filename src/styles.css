@@ -422,6 +422,21 @@ button:focus-visible {
   color: var(--pearl);
 }
 
+.slide-body img {
+  display: block;
+  width: min(100%, 860px);
+  max-width: 100%;
+  height: auto;
+  margin: 18px auto;
+  border: 1px solid rgba(201, 185, 154, 0.16);
+  border-radius: 4px;
+  background:
+    linear-gradient(180deg, rgba(201, 185, 154, 0.04), rgba(201, 185, 154, 0.02)),
+    rgba(9, 9, 11, 0.72);
+  padding: 10px;
+  box-shadow: 0 0 40px rgba(201, 185, 154, 0.08);
+}
+
 .slide-ascii {
   position: relative;
   margin: 0 auto 30px;

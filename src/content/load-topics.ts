@@ -20,6 +20,7 @@ import {
   parseTopicDirectoryName,
   titleCaseSlug
 } from "./slide-schema.ts";
+import { rewriteTopicAssetUrl } from "./topic-assets.ts";
 
 export interface SlideManifest {
   id: number;
@@ -89,7 +90,7 @@ function renderCodeFence(code: string, info: string): string {
   return `<pre${preClass}><code${languageClass}>${escapeHtml(code)}</code></pre>`;
 }
 
-function createMarkdownRenderer(): MarkdownIt {
+function createMarkdownRenderer(topicDirectoryName: string): MarkdownIt {
   const markdown = new MarkdownIt({
     html: true,
     linkify: true,
@@ -98,6 +99,9 @@ function createMarkdownRenderer(): MarkdownIt {
   });
   const defaultFence: NonNullable<MarkdownIt["renderer"]["rules"]["fence"]> =
     markdown.renderer.rules.fence ??
+    ((tokens, idx, options, _env, self) => self.renderToken(tokens, idx, options));
+  const defaultImage: NonNullable<MarkdownIt["renderer"]["rules"]["image"]> =
+    markdown.renderer.rules.image ??
     ((tokens, idx, options, _env, self) => self.renderToken(tokens, idx, options));
 
   markdown.renderer.rules.fence = (tokens, idx, options, env, self) => {
@@ -110,11 +114,21 @@ function createMarkdownRenderer(): MarkdownIt {
     return defaultFence(tokens, idx, options, env, self);
   };
 
+  markdown.renderer.rules.image = (tokens, idx, options, env, self) => {
+    const token = tokens[idx];
+    const sourceIndex = token.attrIndex("src");
+
+    if (sourceIndex >= 0 && token.attrs) {
+      token.attrs[sourceIndex][1] = rewriteTopicAssetUrl(token.attrs[sourceIndex][1], topicDirectoryName);
+    }
+
+    return defaultImage(tokens, idx, options, env, self);
+  };
+
   return markdown;
 }
 
 export async function buildPresentationManifest(topicsDirectory: string): Promise<PresentationManifest> {
-  const markdown = createMarkdownRenderer();
   const entries = await fs.readdir(topicsDirectory, { withFileTypes: true });
   const topicDirectories = entries.filter((entry) => entry.isDirectory()).sort((left, right) => left.name.localeCompare(right.name));
   const seenTopicIds = new Set<number>();
@@ -129,6 +143,7 @@ export async function buildPresentationManifest(topicsDirectory: string): Promis
 
     seenTopicIds.add(topicMeta.id);
     const topicPath = path.join(topicsDirectory, directory.name);
+    const markdown = createMarkdownRenderer(directory.name);
     const slideEntries = (await fs.readdir(topicPath, { withFileTypes: true }))
       .filter((entry) => entry.isFile() && entry.name.endsWith(".md"))
       .sort((left, right) => left.name.localeCompare(right.name));

@@ -136,6 +136,58 @@ const total = values.reduce((sum, value) => sum + value, 0);
     expect(manifest.topics[0].slides[0].html).toContain('class="hljs language-md"');
   });
 
+  it("rewrites topic-local image paths in slide HTML", async () => {
+    const root = await mkdtemp(path.join(os.tmpdir(), "knowledge-sharing-"));
+    tempDirectories.push(root);
+    await mkdir(path.join(root, "0-demo"));
+    await writeFile(
+      path.join(root, "0-demo", "0-intro.md"),
+      buildSlide(
+        "Intro",
+        "Local image",
+        `## Scene
+![Retro vibe](./assets/retro-vibe.png "Neon grid")
+
+![Console shot](assets/terminal.png)`
+      ),
+      "utf8"
+    );
+
+    const manifest = await buildPresentationManifest(root);
+    const html = manifest.topics[0].slides[0].html;
+
+    expect(html).toContain('src="topics/0-demo/assets/retro-vibe.png"');
+    expect(html).toContain('alt="Retro vibe"');
+    expect(html).toContain('title="Neon grid"');
+    expect(html).toContain('src="topics/0-demo/assets/terminal.png"');
+    expect(html).toContain('alt="Console shot"');
+  });
+
+  it("leaves external and rooted image paths unchanged", async () => {
+    const root = await mkdtemp(path.join(os.tmpdir(), "knowledge-sharing-"));
+    tempDirectories.push(root);
+    await mkdir(path.join(root, "0-demo"));
+    await writeFile(
+      path.join(root, "0-demo", "0-intro.md"),
+      buildSlide(
+        "Intro",
+        "Remote image",
+        `## Scene
+![External](https://example.com/retro.png)
+![Rooted](/shared/retro.png)
+![Hash](#diagram)`
+      ),
+      "utf8"
+    );
+
+    const manifest = await buildPresentationManifest(root);
+    const html = manifest.topics[0].slides[0].html;
+
+    expect(html).toContain('src="https://example.com/retro.png"');
+    expect(html).toContain('src="/shared/retro.png"');
+    expect(html).toContain('src="#diagram"');
+  });
+
   it("preserves null asciiSeed values", async () => {
     const root = await mkdtemp(path.join(os.tmpdir(), "knowledge-sharing-"));
     tempDirectories.push(root);

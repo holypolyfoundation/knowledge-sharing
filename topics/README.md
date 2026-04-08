@@ -25,7 +25,13 @@ Add bullets, code blocks, or Mermaid diagrams.
 - Lists
 - Code fences
 - Mermaid diagrams inside ` ```mermaid ` fences
+- Topic-local images with `![alt](./assets/file.png)`
 - Inline HTML only when it helps presentation rendering
+
+## Topic assets
+- Store per-topic media in `topics/<number>-<slug>/assets/`
+- Reference those files from slides with `./assets/<file>`
+- Topic-local images are rendered with the default slide image frame automatically
 
 ## Validation reminders
 - No `#` heading in the body

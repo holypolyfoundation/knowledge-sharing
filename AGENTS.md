@@ -46,6 +46,8 @@ Body rules:
 - Do not author inline ASCII wrappers in the Markdown body
 - When `ascii_seed` is non-null, the renderer injects the animated ASCII block before the first `##` section
 - Mermaid code fences are allowed
+- Topic-local images are allowed via normal Markdown using `![alt](./assets/file.png)`
+- Prefer `./assets/<file>` for files stored inside the current topic directory
 
 ## Commands
 - `pnpm validate` checks topic names, slide names, frontmatter, and legacy ASCII removal
@@ -67,6 +69,7 @@ Body rules:
 - The presentation UI is a static Vite app with hash routing
 - GitHub Pages deployment uses `.github/workflows/deploy-pages.yml`
 - Mermaid diagrams are rendered client-side after slide mount
+- Topic assets under `topics/<number>-<slug>/assets/` are published at `topics/<number>-<slug>/assets/...`
 
 ## Working Rules
 - Favor simple TypeScript and small modules over framework-heavy abstractions
