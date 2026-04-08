@@ -332,7 +332,7 @@ button:focus-visible {
   z-index: 1;
   max-width: 1040px;
   margin: 0 auto 18px;
-  padding: 0 8px;
+  padding: 14px 8px 0;
 }
 
 .stage-header-top {
@@ -423,10 +423,10 @@ button:focus-visible {
   position: relative;
   margin: 0 auto 30px;
   overflow-x: auto;
-  padding: 12px;
-  border: 1px solid rgba(201, 185, 154, 0.1);
-  background: rgba(201, 185, 154, 0.02);
-  box-shadow: 0 0 40px var(--glow);
+  padding: 12px 0;
+  border: 0;
+  background: transparent;
+  box-shadow: none;
 }
 
 .slide-body [data-slide-ascii]::after {
