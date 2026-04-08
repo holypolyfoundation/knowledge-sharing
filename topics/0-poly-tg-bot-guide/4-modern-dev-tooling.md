@@ -1,7 +1,8 @@
 ---
 title: "Modern dev tooling"
 summary: null
-ascii_seed: null
+ascii_seed: radar
+ascii_height: 5
 ---
 
 #### Що обрати?

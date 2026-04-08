@@ -1,7 +1,8 @@
 ---
 title: "How to make something?"
 summary: null
-ascii_seed: null
+ascii_seed: starfield
+ascii_height: 5
 ---
 
 #### Цикл роботи з AI

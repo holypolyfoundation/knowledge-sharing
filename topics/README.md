@@ -37,7 +37,7 @@ Add bullets, code blocks, or Mermaid diagrams.
 ## Validation reminders
 - No `#` heading in the body
 - Do not author legacy inline ASCII wrappers in slide bodies
-- Set `ascii_seed` to `null`, `"zero-one"`, `"fire"`, `"terminal"`, or `"game-of-life"`
+- Set `ascii_seed` to `null`, `"zero-one"`, `"fire"`, `"radar"`, `"starfield"`, `"circuit-pulse"`, `"equalizer"`, `"packet-flow"`, `"terminal"`, or `"game-of-life"`
 - Set `ascii_height` to a positive integer when you want more than the default 3 animation rows
 - Prefer `null` when a slide does not clearly benefit from one of the built-in scenarios
 - `summary` is optional

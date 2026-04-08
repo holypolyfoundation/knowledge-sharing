@@ -22,7 +22,17 @@ describe("renderAsciiPreview", () => {
   });
 
   it("renders every scenario with configurable row counts", () => {
-    const scenarios = ["zero-one", "fire", "terminal", "game-of-life"] as const;
+    const scenarios = [
+      "zero-one",
+      "fire",
+      "radar",
+      "starfield",
+      "circuit-pulse",
+      "equalizer",
+      "packet-flow",
+      "terminal",
+      "game-of-life"
+    ] as const;
     const rowCounts = [1, 3, 10];
 
     for (const scenario of scenarios) {
@@ -89,6 +99,150 @@ describe("renderAsciiPreview", () => {
 
     expect(later).not.toBe(start);
     expect(later.split("\n")[2]).not.toContain(" ");
+  });
+
+  it("renders radar as a sparse sweep field with pings", () => {
+    const frames = Array.from({ length: 18 }, (_, frame) =>
+      renderAsciiPreview("radar", {
+        slideTitle: "Monitor",
+        summary: "Sweep"
+      }, 48, frame)
+    );
+    const combined = frames.join("\n");
+
+    frames.forEach((preview) => {
+      expectFullWidthRows(preview, 48, 3);
+    });
+
+    expect(combined).toMatch(/[|!:.']/);
+    expect(combined).toMatch(/[Oo*+]/);
+  });
+
+  it("animates radar across frames", () => {
+    const start = renderAsciiPreview("radar", {
+      slideTitle: "Monitor",
+      summary: "Sweep"
+    }, 48, 0);
+    const later = renderAsciiPreview("radar", {
+      slideTitle: "Monitor",
+      summary: "Sweep"
+    }, 48, 8);
+
+    expect(later).not.toBe(start);
+  });
+
+  it("renders starfield as a sparse parallax field", () => {
+    const preview = renderAsciiPreview("starfield", {
+      slideTitle: "Space",
+      summary: "Parallax"
+    }, 48, 18);
+    const lines = expectFullWidthRows(preview, 48, 3);
+    const visibleGlyphs = preview.replace(/[ \n]/g, "").length;
+
+    expect(lines).toHaveLength(3);
+    expect(preview).toMatch(/^[ .'*+=\-\n]+$/);
+    expect(visibleGlyphs).toBeLessThan(40);
+  });
+
+  it("animates starfield across frames", () => {
+    const start = renderAsciiPreview("starfield", {
+      slideTitle: "Space",
+      summary: "Parallax"
+    }, 48, 0);
+    const later = renderAsciiPreview("starfield", {
+      slideTitle: "Space",
+      summary: "Parallax"
+    }, 48, 12);
+
+    expect(later).not.toBe(start);
+  });
+
+  it("renders circuit-pulse with buses and signal pulses", () => {
+    const frames = Array.from({ length: 12 }, (_, frame) =>
+      renderAsciiPreview("circuit-pulse", {
+        slideTitle: "Board",
+        summary: "Signals"
+      }, 48, frame)
+    );
+    const combined = frames.join("\n");
+
+    frames.forEach((preview) => {
+      expectFullWidthRows(preview, 48, 3);
+    });
+
+    expect(combined).toMatch(/[=\-|+]/);
+    expect(combined).toMatch(/[@Oo]/);
+  });
+
+  it("animates circuit-pulse while keeping traces visible", () => {
+    const start = renderAsciiPreview("circuit-pulse", {
+      slideTitle: "Board",
+      summary: "Signals"
+    }, 48, 0);
+    const later = renderAsciiPreview("circuit-pulse", {
+      slideTitle: "Board",
+      summary: "Signals"
+    }, 48, 8);
+
+    expect(later).not.toBe(start);
+    expect(later).toMatch(/[=\-|+]/);
+  });
+
+  it("renders equalizer with bottom-anchored bars and peak holds", () => {
+    const preview = renderAsciiPreview("equalizer", {
+      slideTitle: "Audio",
+      summary: "Levels"
+    }, 48, 18, 6);
+    const lines = expectFullWidthRows(preview, 48, 6);
+
+    expect(preview).toMatch(/^[ :|#=\-\n]+$/);
+    expect(lines[lines.length - 1]).toMatch(/[|#]/);
+    expect(lines.some((line) => /[=-]/.test(line))).toBe(true);
+  });
+
+  it("animates equalizer across frames while supporting taller blocks", () => {
+    const start = renderAsciiPreview("equalizer", {
+      slideTitle: "Audio",
+      summary: "Levels"
+    }, 48, 0, 10);
+    const later = renderAsciiPreview("equalizer", {
+      slideTitle: "Audio",
+      summary: "Levels"
+    }, 48, 10, 10);
+
+    expectFullWidthRows(later, 48, 10);
+    expect(later).not.toBe(start);
+  });
+
+  it("renders packet-flow as bidirectional transport lanes", () => {
+    const frames = Array.from({ length: 12 }, (_, frame) =>
+      renderAsciiPreview("packet-flow", {
+        slideTitle: "Network",
+        summary: "Packets"
+      }, 48, frame, 6)
+    );
+    const combined = frames.join("\n");
+
+    frames.forEach((preview) => {
+      expectFullWidthRows(preview, 48, 6);
+    });
+
+    expect(combined).toContain("[>]");
+    expect(combined).toContain("[<]");
+    expect(combined).toMatch(/[+\/\\-]/);
+  });
+
+  it("animates packet-flow across frames", () => {
+    const start = renderAsciiPreview("packet-flow", {
+      slideTitle: "Network",
+      summary: "Packets"
+    }, 48, 0, 6);
+    const later = renderAsciiPreview("packet-flow", {
+      slideTitle: "Network",
+      summary: "Packets"
+    }, 48, 8, 6);
+
+    expect(later).not.toBe(start);
   });
 
   it("renders terminal as layered command streams with a prompt", () => {

@@ -21,6 +21,10 @@ function clamp(value: number, min: number, max: number): number {
   return Math.min(max, Math.max(min, value));
 }
 
+function mod(value: number, divisor: number): number {
+  return ((value % divisor) + divisor) % divisor;
+}
+
 function hashSeed(input: string): number {
   let hash = 2166136261;
 
@@ -71,6 +75,22 @@ function stamp(rows: string[][], row: number, column: number, text: string): voi
   }
 }
 
+function stampWrapped(rows: string[][], row: number, column: number, text: string): void {
+  if (row < 0 || row >= rows.length) {
+    return;
+  }
+
+  const rowWidth = rows[row]?.length ?? 0;
+
+  if (rowWidth === 0) {
+    return;
+  }
+
+  for (let index = 0; index < text.length; index += 1) {
+    rows[row][mod(column + index, rowWidth)] = text[index] ?? " ";
+  }
+}
+
 function renderRows(rows: string[][]): string {
   return rows.map((row) => row.join("")).join("\n");
 }
@@ -87,6 +107,24 @@ function rotateRight(text: string, offset: number): string {
   }
 
   return text.slice(-normalizedOffset) + text.slice(0, -normalizedOffset);
+}
+
+function buildLaneRows(rows: number, minLanes = 3, maxLanes = 8): number[] {
+  const laneCount = Math.min(
+    maxLanes,
+    Math.max(1, Math.min(rows, rows >= minLanes ? Math.max(minLanes, Math.floor(rows * 0.75)) : rows))
+  );
+  const laneRows: number[] = [];
+
+  for (let index = 0; index < laneCount; index += 1) {
+    const remaining = laneCount - index - 1;
+    const minRow = laneRows[index - 1] === undefined ? 0 : laneRows[index - 1] + 1;
+    const ideal = laneCount === 1 ? Math.floor((rows - 1) / 2) : Math.round((index * (rows - 1)) / (laneCount - 1));
+    const maxRow = rows - 1 - remaining;
+    laneRows.push(clamp(ideal, minRow, maxRow));
+  }
+
+  return laneRows;
 }
 
 function buildMachineCodeRow(columns: number, row: number, seed: number): string {
@@ -723,6 +761,238 @@ function renderZeroOneFrame(context: ScenarioContext): string {
   return rows.join("\n");
 }
 
+function renderRadarFrame(context: ScenarioContext): string {
+  const rows = createBlankRows(context.columns, context.rows);
+  const sweepWidth = Math.max(4, Math.round(context.columns * 0.08));
+  const sweepHead = mod(Math.floor(context.frame * 1.5) + (context.seed % context.columns), context.columns);
+  const targetCount = clamp(3 + (context.seed % 6), 3, 8);
+
+  for (let row = 0; row < context.rows; row += 1) {
+    for (let column = 0; column < context.columns; column += 1) {
+      const noise = hashSeed(`${context.seed}|radar|bg|${row}|${column}`);
+      const sweepAge = mod(sweepHead - column, context.columns);
+
+      if ((noise & 63) === 0) {
+        rows[row][column] = ".";
+      } else if ((noise & 127) === 1) {
+        rows[row][column] = "'";
+      }
+
+      if (sweepAge < sweepWidth) {
+        if (sweepAge === 0) {
+          rows[row][column] = "|";
+        } else if (sweepAge < 2) {
+          rows[row][column] = "!";
+        } else if (sweepAge < 4 && rows[row][column] === " ") {
+          rows[row][column] = ":";
+        } else if (rows[row][column] === " ") {
+          rows[row][column] = ".";
+        }
+      }
+    }
+  }
+
+  for (let index = 0; index < targetCount; index += 1) {
+    const targetRow = hashSeed(`${context.seed}|radar|target-row|${index}`) % context.rows;
+    const targetColumn = hashSeed(`${context.seed}|radar|target-column|${index}`) % context.columns;
+    const sweepAge = mod(sweepHead - targetColumn, context.columns);
+
+    if (sweepAge >= sweepWidth + 2) {
+      continue;
+    }
+
+    const glyph = sweepAge === 0 ? "O" : sweepAge === 1 ? "o" : sweepAge <= 3 ? "*" : "+";
+    rows[targetRow][targetColumn] = glyph;
+
+    if (context.rows > 3 && sweepAge <= 2) {
+      const echoGlyph = sweepAge === 0 ? "o" : "+";
+      if (targetRow > 0) {
+        rows[targetRow - 1][targetColumn] = echoGlyph;
+      }
+
+      if (targetRow < context.rows - 1) {
+        rows[targetRow + 1][targetColumn] = echoGlyph;
+      }
+    }
+  }
+
+  return renderRows(rows);
+}
+
+function renderStarfieldFrame(context: ScenarioContext): string {
+  const rows = createBlankRows(context.columns, context.rows);
+  const area = context.columns * context.rows;
+  const layers = [
+    { name: "far", count: Math.max(4, Math.floor(area / 18)), stepDivisor: 6, glyphs: [".", "'"] as const },
+    { name: "mid", count: Math.max(3, Math.floor(area / 36)), stepDivisor: 3, glyphs: ["*"] as const },
+    { name: "near", count: Math.max(2, Math.floor(area / 72)), stepDivisor: 2, glyphs: ["+", "-", "="] as const }
+  ] as const;
+
+  for (const [layerIndex, layer] of layers.entries()) {
+    const shift = Math.floor(context.frame / layer.stepDivisor);
+
+    for (let index = 0; index < layer.count; index += 1) {
+      const row = hashSeed(`${context.seed}|starfield|${layer.name}|row|${index}`) % context.rows;
+      const baseColumn = hashSeed(`${context.seed}|starfield|${layer.name}|column|${index}`) % context.columns;
+      const column = mod(baseColumn - shift - index * (layerIndex + 1), context.columns);
+      const glyphSeed = hashSeed(`${context.seed}|starfield|${layer.name}|glyph|${index}`);
+
+      if (layer.name === "near" && (context.frame + index) % 4 === 0) {
+        stampWrapped(rows, row, column, (glyphSeed & 1) === 0 ? "==" : "--");
+        continue;
+      }
+
+      rows[row][column] = layer.glyphs[glyphSeed % layer.glyphs.length] ?? layer.glyphs[0];
+    }
+  }
+
+  return renderRows(rows);
+}
+
+function renderCircuitPulseFrame(context: ScenarioContext): string {
+  const rows = createBlankRows(context.columns, context.rows);
+  const laneRows = buildLaneRows(context.rows, 3, 8);
+  const connectorCount = Math.max(2, Math.floor(context.columns / 18));
+
+  for (const [laneIndex, laneRow] of laneRows.entries()) {
+    const laneGlyph = laneIndex % 2 === 0 ? "=" : "-";
+
+    for (let column = 0; column < context.columns; column += 1) {
+      rows[laneRow][column] = laneGlyph;
+    }
+  }
+
+  for (let index = 0; index < connectorCount; index += 1) {
+    const laneIndex = index % Math.max(1, laneRows.length - 1);
+    const startRow = laneRows[laneIndex] ?? 0;
+    const endRow = laneRows[laneIndex + 1] ?? startRow;
+    const column = 3 + (hashSeed(`${context.seed}|circuit|connector|${index}`) % Math.max(4, context.columns - 6));
+
+    rows[startRow][column] = "+";
+    rows[endRow][column] = "+";
+
+    for (let row = Math.min(startRow, endRow) + 1; row < Math.max(startRow, endRow); row += 1) {
+      rows[row][column] = "|";
+    }
+  }
+
+  for (const [laneIndex, laneRow] of laneRows.entries()) {
+    const pulseCount = laneIndex % 2 === 0 ? 2 : 1;
+
+    for (let pulseIndex = 0; pulseIndex < pulseCount; pulseIndex += 1) {
+      const travel = Math.floor((context.frame + pulseIndex * 5) / (pulseIndex === 0 ? 2 : 3));
+      const origin = hashSeed(`${context.seed}|circuit|pulse|${laneIndex}|${pulseIndex}`) % context.columns;
+      const column = mod(origin + travel, context.columns);
+      const pulsePhase = (context.frame + pulseIndex + laneIndex) % 6;
+      const glyph = pulsePhase === 0 ? "@" : pulsePhase <= 2 ? "O" : "o";
+      rows[laneRow][column] = glyph;
+    }
+  }
+
+  return renderRows(rows);
+}
+
+function renderEqualizerFrame(context: ScenarioContext): string {
+  const rows = createBlankRows(context.columns, context.rows);
+  const barWidth = context.columns >= 72 ? 3 : 2;
+  const gap = 1;
+  const barCount = Math.max(1, Math.floor((context.columns + gap) / (barWidth + gap)));
+  const phase = ((context.seed % 8192) / 8192) * Math.PI * 2;
+
+  for (let barIndex = 0; barIndex < barCount; barIndex += 1) {
+    const startColumn = barIndex * (barWidth + gap);
+    const baseWave = 0.52
+      + Math.sin(context.frame / 4.2 + barIndex * 0.58 + phase) * 0.24
+      + Math.sin(context.frame / 9.1 - barIndex * 0.31 + phase * 0.6) * 0.16;
+    const jitter = ((hashSeed(`${context.seed}|equalizer|${barIndex}`) % 100) / 100 - 0.5) * 0.14;
+    const level = clamp(baseWave + jitter, 0.08, 1);
+    const previousLevel = clamp(
+      0.52
+        + Math.sin((context.frame - 5) / 4.2 + barIndex * 0.58 + phase) * 0.24
+        + Math.sin((context.frame - 5) / 9.1 - barIndex * 0.31 + phase * 0.6) * 0.16
+        + jitter,
+      0.08,
+      1
+    );
+    const filledRows = Math.max(1, Math.round(level * context.rows));
+    const peakRows = Math.max(filledRows, Math.round(previousLevel * context.rows));
+
+    for (let offset = 0; offset < barWidth; offset += 1) {
+      const column = startColumn + offset;
+
+      if (column >= context.columns) {
+        continue;
+      }
+
+      for (let filled = 0; filled < filledRows; filled += 1) {
+        const row = context.rows - 1 - filled;
+        rows[row][column] = filled === filledRows - 1 ? "#" : filled < 2 ? "|" : ":";
+      }
+
+      const peakRow = context.rows - peakRows - 1;
+      if (peakRow >= 0 && peakRow < context.rows && peakRows > filledRows) {
+        rows[peakRow][column] = offset % 2 === 0 ? "=" : "-";
+      }
+    }
+  }
+
+  return renderRows(rows);
+}
+
+function renderPacketFlowFrame(context: ScenarioContext): string {
+  const rows = createBlankRows(context.columns, context.rows);
+  const laneRows = buildLaneRows(context.rows, 3, 8);
+  const switchCount = Math.max(2, Math.floor(context.columns / 22));
+
+  for (const laneRow of laneRows) {
+    for (let column = 0; column < context.columns; column += 1) {
+      rows[laneRow][column] = "-";
+    }
+  }
+
+  for (let index = 0; index < switchCount; index += 1) {
+    const topLane = laneRows[index % Math.max(1, laneRows.length - 1)] ?? 0;
+    const bottomLane = laneRows[Math.min(laneRows.length - 1, (index % Math.max(1, laneRows.length - 1)) + 1)] ?? topLane;
+    const column = 5 + (hashSeed(`${context.seed}|packet|switch|${index}`) % Math.max(6, context.columns - 10));
+    rows[topLane][column] = "+";
+    rows[bottomLane][column] = "+";
+
+    if (bottomLane - topLane <= 1) {
+      if (column + 1 < context.columns) {
+        rows[topLane][column + 1] = "\\";
+      }
+
+      if (column - 1 >= 0) {
+        rows[bottomLane][column - 1] = "/";
+      }
+      continue;
+    }
+
+    for (let row = topLane + 1; row < bottomLane; row += 1) {
+      rows[row][column] = "|";
+    }
+
+    if (column + 1 < context.columns) {
+      rows[topLane][column + 1] = "\\";
+    }
+
+    if (column - 1 >= 0) {
+      rows[bottomLane][column - 1] = "/";
+    }
+  }
+
+  for (const [laneIndex, laneRow] of laneRows.entries()) {
+    const direction = laneIndex % 2 === 0 ? 1 : -1;
+    const token = direction > 0 ? "[>]" : "[<]";
+    const baseColumn = hashSeed(`${context.seed}|packet|lane|${laneIndex}`) % context.columns;
+    const travel = Math.floor((context.frame + laneIndex * 3) / 2) * direction;
+    const column = mod(baseColumn + travel, context.columns);
+    stampWrapped(rows, laneRow, column, token);
+  }
+
+  return renderRows(rows);
+}
+
 function buildScenarioSeed(meta: AsciiMeta, scenario: AsciiScenario): number {
   return hashSeed(`${scenario}|${meta.topicTitle}|${meta.slideTitle}|${meta.slideId}|${meta.slideNumber}`);
 }
@@ -742,6 +1012,16 @@ function renderScenarioFrame(scenario: AsciiScenario, columns: number, rows: num
       return renderZeroOneFrame(context);
     case "fire":
       return renderFireFrame(context);
+    case "radar":
+      return renderRadarFrame(context);
+    case "starfield":
+      return renderStarfieldFrame(context);
+    case "circuit-pulse":
+      return renderCircuitPulseFrame(context);
+    case "equalizer":
+      return renderEqualizerFrame(context);
+    case "packet-flow":
+      return renderPacketFlowFrame(context);
     case "terminal":
       return renderTerminalFrame(context);
     case "game-of-life":

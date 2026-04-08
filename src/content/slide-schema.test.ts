@@ -104,6 +104,36 @@ Shared context`,
     expect(parsed.frontmatter.ascii_seed).toBe("fire");
   });
 
+  it("accepts radar ascii_seed", () => {
+    const parsed = parseSlideMarkdown(buildValidSlide().replace("ascii_seed: zero-one", "ascii_seed: radar"), "/tmp/0-intro.md");
+
+    expect(parsed.frontmatter.ascii_seed).toBe("radar");
+  });
+
+  it("accepts starfield ascii_seed", () => {
+    const parsed = parseSlideMarkdown(buildValidSlide().replace("ascii_seed: zero-one", "ascii_seed: starfield"), "/tmp/0-intro.md");
+
+    expect(parsed.frontmatter.ascii_seed).toBe("starfield");
+  });
+
+  it("accepts circuit-pulse ascii_seed", () => {
+    const parsed = parseSlideMarkdown(buildValidSlide().replace("ascii_seed: zero-one", "ascii_seed: circuit-pulse"), "/tmp/0-intro.md");
+
+    expect(parsed.frontmatter.ascii_seed).toBe("circuit-pulse");
+  });
+
+  it("accepts equalizer ascii_seed", () => {
+    const parsed = parseSlideMarkdown(buildValidSlide().replace("ascii_seed: zero-one", "ascii_seed: equalizer"), "/tmp/0-intro.md");
+
+    expect(parsed.frontmatter.ascii_seed).toBe("equalizer");
+  });
+
+  it("accepts packet-flow ascii_seed", () => {
+    const parsed = parseSlideMarkdown(buildValidSlide().replace("ascii_seed: zero-one", "ascii_seed: packet-flow"), "/tmp/0-intro.md");
+
+    expect(parsed.frontmatter.ascii_seed).toBe("packet-flow");
+  });
+
   it("accepts terminal ascii_seed", () => {
     const parsed = parseSlideMarkdown(buildValidSlide().replace("ascii_seed: zero-one", "ascii_seed: terminal"), "/tmp/0-intro.md");
 
@@ -129,7 +159,7 @@ ascii_seed: snake
 Shared context`,
         "/tmp/0-intro.md"
       )
-    ).toThrow('"ascii_seed" must be one of zero-one, fire, terminal, game-of-life or null.');
+    ).toThrow('"ascii_seed" must be one of zero-one, fire, radar, starfield, circuit-pulse, equalizer, packet-flow, terminal, game-of-life or null.');
   });
 
   it("rejects invalid ascii_height values", () => {
