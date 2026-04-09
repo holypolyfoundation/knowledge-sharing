@@ -1,52 +1,105 @@
 ---
-title: "Old school vs Modern Engineering"
+title: "Old School vs New School SWE"
 summary: null
 ascii_seed: terminal
 ---
 
-### Рутина інженера
+## Рутина інженера
 
-##### 5 років тому
+### 5 років тому
 
 ```mermaid
 flowchart TB
-  C((Клієнти))
-  GW[API Gateway]
+  C((Clients)) --> EDGE[CDN / WAF / Rate limiting]
+  EDGE --> GW[API Gateway / BFF]
 
-  subgraph identity["Auth & Graph"]
-    AUTH[Auth]
-    PROFILE[Профілі]
-    GRAPH[Social graph<br/>підписки]
+  subgraph core["Core services"]
+    AUTH[Auth service]
+    USERS[User service]
+    GRAPH[Social graph service]
+    TWEETS[Tweet service]
+    MEDIA[Media service]
+    DM[Messaging service]
   end
 
-  subgraph content["Content"]
-    POST[Пости / твіти]
-    MEDIA[Медіа]
-    FEED[Стрічка]
+  subgraph realtime["Asynchronous + realtime"]
+    BUS[(Event bus)]
+    Q[(Queues)]
+    FANOUT[Timeline fanout]
+    NOTIFY[Notification service]
   end
 
-  subgraph comm["Search & Communication"]
-    SEARCH[Пошук]
-    NOTIFY[Сповіщення]
-    DM[Direct messages]
+  subgraph readpaths["Read paths"]
+    FEED[Timeline / Feed service]
+    SEARCH[Search service]
   end
 
-  C --> GW
-  GW --> AUTH & PROFILE & GRAPH & POST & MEDIA & FEED & SEARCH & NOTIFY & DM
+  subgraph storage["Storage"]
+    CACHE[(Redis cache)]
+    SQL[(SQL: users/auth)]
+    KV[(NoSQL: tweets / timelines)]
+    IDX[(Search index)]
+    OBJ[(Object storage: media)]
+  end
 
-  AUTH --> PROFILE
-  GRAPH --> PROFILE
-  POST --> MEDIA
-  FEED --> GRAPH
-  FEED --> POST
-  SEARCH --> POST
-  NOTIFY --> POST
-  NOTIFY --> PROFILE
-  DM --> AUTH
-  DM --> PROFILE
+  subgraph platform["Platform"]
+    CFG[Config + Feature flags]
+    OBS[Observability<br/>logs / metrics / traces]
+  end
+
+  GW --> AUTH & USERS & GRAPH & TWEETS & MEDIA & DM & FEED & SEARCH
+  GW --> CFG
+  GW --> OBS
+
+  AUTH --> SQL
+  USERS --> SQL
+  GRAPH --> KV
+  TWEETS --> KV
+  MEDIA --> OBJ
+  DM --> KV
+
+  AUTH --> OBS
+  USERS --> OBS
+  GRAPH --> OBS
+  TWEETS --> OBS
+  MEDIA --> OBS
+  DM --> OBS
+  FEED --> OBS
+  SEARCH --> OBS
+
+  AUTH --> CFG
+  USERS --> CFG
+  GRAPH --> CFG
+  TWEETS --> CFG
+  MEDIA --> CFG
+  DM --> CFG
+  FEED --> CFG
+  SEARCH --> CFG
+
+  TWEETS --> BUS
+  BUS --> Q
+  Q --> FANOUT
+  FANOUT --> KV
+  BUS --> NOTIFY
+
+  FEED --> CACHE
+  FEED --> KV
+  SEARCH --> IDX
+  TWEETS --> IDX
 ```
 
-##### Цикл роботи розробника
+### Сьогодні
+
+```md
+Створи повний клон системи "X": API Gateway, Auth → Profile, Social graph → Profile, пости з медіа, стрічка що збирає граф + пости, пошук по постах, сповіщення про пости і профілі, DM з перевіркою auth. Имплементуй проект, зроби його готовим до високого навантаження. Не роби помилок!
+```
+
+<br />
+<br />
+
+## Цикл роботи розробника
+
+### Сьогодні
 
 ```mermaid
 flowchart LR
@@ -64,12 +117,7 @@ flowchart LR
   K --> A
 ```
 
-
-##### Сьогодні
-
-```md
-Створи повний клон системи "X": API Gateway, Auth → Profile, Social graph → Profile, пости з медіа, стрічка що збирає граф + пости, пошук по постах, сповіщення про пости і профілі, DM з перевіркою auth. Имплементуй проект, зроби його готовим до високого навантаження. Не роби помилок!
-```
+### 5 років тому
 
 ```mermaid
 flowchart LR
@@ -85,13 +133,14 @@ flowchart LR
 <br />
 <br />
 
-### Рутина НЕ інженера
 
-#### 5 років тому
+## Рутина НЕ інженера
+
+## 5 років тому
 
 ![Ancient vibe](./assets/retro-vibe.png)
 
-#### Сьогодні
+## Сьогодні
 
 ```md
 Зроби HFT бота для поліка з прибутковою стратегією та без loss.
