@@ -1,7 +1,7 @@
 ---
-title: "Bot Implementation"
+title: "Vibe-codig."
 summary: null
-ascii_seed: swarm
+ascii_seed: circuit-pulse
 ascii_height: 5
 ---
 
