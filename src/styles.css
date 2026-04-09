@@ -433,6 +433,59 @@ button:focus-visible {
   padding-left: 1.2rem;
 }
 
+.slide-body blockquote {
+  position: relative;
+  margin: 20px 0;
+  padding: 16px 18px 16px 22px;
+  border-left: 3px solid var(--pearl);
+  background:
+    linear-gradient(90deg, rgba(201, 185, 154, 0.09), rgba(201, 185, 154, 0.02) 28%, transparent 72%),
+    rgba(24, 24, 27, 0.7);
+  box-shadow:
+    inset 0 0 0 1px rgba(201, 185, 154, 0.08),
+    0 0 24px rgba(201, 185, 154, 0.05);
+}
+
+.slide-body blockquote > :first-child {
+  margin-top: 0;
+}
+
+.slide-body blockquote > :last-child {
+  margin-bottom: 0;
+}
+
+.slide-body blockquote p,
+.slide-body blockquote li {
+  color: var(--zinc-200);
+}
+
+.slide-body blockquote p {
+  position: relative;
+  padding-left: 30px;
+  font-size: 15px;
+  line-height: 1.85;
+}
+
+.slide-body blockquote p::before {
+  content: ">_";
+  position: absolute;
+  left: 0;
+  color: var(--pearl-dim);
+}
+
+.slide-body blockquote ul,
+.slide-body blockquote ol {
+  margin-top: 10px;
+}
+
+.slide-body blockquote strong {
+  color: var(--pearl-bright);
+}
+
+.slide-body blockquote em {
+  color: var(--zinc-100);
+}
+
 .slide-body a {
   color: var(--pearl);
 }
