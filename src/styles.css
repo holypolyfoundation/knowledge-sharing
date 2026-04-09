@@ -94,10 +94,13 @@ button:focus-visible {
 
 #app {
   min-height: 100vh;
+  min-height: 100dvh;
 }
 
 .app-shell {
   width: var(--shell-width);
+  min-height: 100vh;
+  min-height: 100dvh;
   margin: 0 auto;
   padding: 10px 0 48px;
 }
@@ -106,6 +109,10 @@ button:focus-visible {
 .slide-shell {
   display: grid;
   gap: 16px;
+}
+
+.slide-shell {
+  grid-template-rows: minmax(0, 1fr) auto;
 }
 
 .topic-grid-frame,
