@@ -109,7 +109,11 @@ function createMarkdownRenderer(topicDirectoryName: string): MarkdownIt {
     const token = tokens[idx];
 
     if (token.info.trim() === "mermaid") {
-      return `<div class="mermaid">${escapeHtml(token.content.trim())}</div>`;
+      return [
+        '<figure class="mermaid-block" data-mermaid-block tabindex="0" aria-label="Expand Mermaid diagram">',
+        `<div class="mermaid">${escapeHtml(token.content.trim())}</div>`,
+        "</figure>"
+      ].join("");
     }
 
     return defaultFence(tokens, idx, options, env, self);

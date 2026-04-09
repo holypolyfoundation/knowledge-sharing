@@ -92,6 +92,8 @@ graph TD
 
     const manifest = await buildPresentationManifest(root);
 
+    expect(manifest.topics[0].slides[0].html).toContain('class="mermaid-block"');
+    expect(manifest.topics[0].slides[0].html).toContain('data-mermaid-block');
     expect(manifest.topics[0].slides[0].html).toContain('class="mermaid"');
     expect(manifest.topics[0].slides[0].hasMermaid).toBe(true);
   });

@@ -417,8 +417,15 @@ button:focus-visible {
   line-height: 1.1;
   padding-top: 18px;
   margin: 34px 0 12px;
-  border-top: 1px solid var(--zinc-800);
+  border-top: 1px dashed var(--zinc-800);
   color: inherit;
+}
+
+.slide-body h2::before {
+  content: "*";
+  width: 100%;
+  height: 1px;
+  margin-bottom: 12px;
 }
 
 .slide-body ul {
@@ -503,15 +510,46 @@ button:focus-visible {
   visibility: hidden;
 }
 
-.slide-body .mermaid,
+.slide-body .mermaid-block,
 .slide-body pre {
   margin: 18px 0;
-  overflow-x: auto;
   border: 1px solid var(--zinc-800);
   background:
     linear-gradient(180deg, rgba(201, 185, 154, 0.035), rgba(201, 185, 154, 0.015)),
     rgba(201, 185, 154, 0.02);
   padding: 14px 16px;
+}
+
+.slide-body .mermaid-block {
+  position: relative;
+  overflow: auto;
+  cursor: zoom-in;
+  transition:
+    border-color 0.15s ease,
+    background-color 0.15s ease,
+    box-shadow 0.15s ease;
+}
+
+.slide-body .mermaid-block:hover,
+.slide-body .mermaid-block:focus-visible {
+  border-color: var(--pearl-dim);
+  background:
+    linear-gradient(180deg, rgba(201, 185, 154, 0.05), rgba(201, 185, 154, 0.02)),
+    rgba(201, 185, 154, 0.03);
+  box-shadow: 0 0 28px rgba(201, 185, 154, 0.07);
+}
+
+.slide-body .mermaid-block:focus-visible {
+  outline: none;
+}
+
+.slide-body .mermaid-block .mermaid {
+  min-width: max-content;
+}
+
+.slide-body .mermaid-block svg {
+  display: block;
+  height: auto;
 }
 
 .slide-body pre code {
@@ -576,6 +614,76 @@ button:focus-visible {
 .slide-body .hljs-subst,
 .slide-body .hljs-type {
   color: #d8d8de;
+}
+
+.mermaid-overlay-open {
+  overflow: hidden;
+}
+
+.mermaid-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  display: grid;
+  place-items: center;
+  padding: 24px;
+  background: rgba(0, 0, 0, 0.88);
+  backdrop-filter: blur(12px);
+}
+
+.mermaid-overlay-panel {
+  width: min(96vw, 1800px);
+  max-height: min(94vh, 1400px);
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr);
+  border: 1px solid var(--zinc-700);
+  background:
+    radial-gradient(circle at top, rgba(201, 185, 154, 0.08), transparent 40%),
+    rgba(9, 9, 11, 0.98);
+  box-shadow: 0 24px 100px rgba(0, 0, 0, 0.55);
+}
+
+.mermaid-overlay-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 14px 18px;
+  border-bottom: 1px solid var(--zinc-800);
+}
+
+.mermaid-overlay-label {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--pearl);
+}
+
+.mermaid-overlay-close {
+  border: 1px solid var(--zinc-700);
+  background: transparent;
+  padding: 10px 14px;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--zinc-200);
+}
+
+.mermaid-overlay-canvas {
+  overflow: auto;
+  padding: 20px;
+}
+
+.mermaid-overlay-canvas svg {
+  display: block;
+  width: auto;
+  min-width: 100%;
+  max-width: none;
+  max-height: calc(94vh - 120px);
+  height: auto;
+  margin: 0 auto;
 }
 
 .slide-controls {
@@ -669,5 +777,24 @@ button:focus-visible {
 
   .slide-ascii {
     --ascii-font-size: 9px;
+  }
+
+  .mermaid-overlay {
+    padding: 10px;
+  }
+
+  .mermaid-overlay-panel {
+    width: 100%;
+    max-height: 96vh;
+  }
+
+  .mermaid-overlay-header,
+  .mermaid-overlay-canvas {
+    padding-left: 12px;
+    padding-right: 12px;
+  }
+
+  .mermaid-overlay-canvas svg {
+    max-height: calc(96vh - 104px);
   }
 }

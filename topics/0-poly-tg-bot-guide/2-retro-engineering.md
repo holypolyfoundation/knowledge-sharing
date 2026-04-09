@@ -96,11 +96,11 @@ flowchart TB
 ## Ціль
 Зібрати працюючий клон “X” у вигляді production-орієнтованого монорепо/полірепо (на твій вибір), який піднімається локально і містить мінімально повний вертикальний зріз функціоналу.
 
-## Edge + Gateway (як на діаграмі)
+## Edge + Gateway
 - `CDN / WAF / Rate limiting` (можна як заглушка/конфіг у локальному середовищі)
 - `API Gateway / BFF`: єдина точка входу для клієнтів, маршрутизація до сервісів, auth middleware, кореляційні ID
 
-## Core services (як на діаграмі)
+## Core services
 - `Auth service` → SQL (реєстрація/логін, JWT/сесії, refresh, RBAC за потреби)
 - `User service` → SQL (профіль, налаштування)
 - `Social graph service` → NoSQL/KV (follow/unfollow, список фоловінг/фоловерів)
@@ -108,17 +108,17 @@ flowchart TB
 - `Media service` → Object storage (upload/download, привʼязка медіа до поста)
 - `Messaging service (DM)` → NoSQL/KV (діалоги/повідомлення), **перевірка auth**
 
-## Asynchronous + realtime (як на діаграмі)
+## Asynchronous + realtime
 - `Event bus` + `Queues`
 - `Timeline fanout`: споживає події постів → розкладає у timelines в NoSQL/KV
 - `Notification service`: споживає події → нотифікації про пости/профілі
 
-## Read paths (як на діаграмі)
+## Read paths
 - `Timeline / Feed service`: читає timelines з NoSQL/KV + кешує в Redis (hot paths)
 - `Search service`: пошук по постах через `Search index`
 - `Tweet service` оновлює `Search index` (індексація постів)
 
-## Platform (як на діаграмі)
+## Platform
 - `Config + Feature flags` (мінімальна реалізація: централізований конфіг/ENV + прапорці)
 - `Observability`: structured logs, metrics, traces (мінімум: кореляція запитів між сервісами)
 
@@ -173,11 +173,11 @@ flowchart LR
 
 ## Рутина НЕ інженера
 
-## 5 років тому
+### 5 років тому
 
 ![Ancient vibe](./assets/retro-vibe.png)
 
-## Сьогодні
+### Сьогодні
 
 ```md
 Зроби HFT бота для поліка з прибутковою стратегією та без loss.

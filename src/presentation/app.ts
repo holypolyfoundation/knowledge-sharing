@@ -70,10 +70,13 @@ export function createPresentationApp(options: {
 }): { destroy: () => void } {
   const { root, manifest, mermaidAdapter } = options;
   let cleanupAscii = () => {};
+  let cleanupMermaidInteractions = () => {};
 
   const render = async (): Promise<void> => {
     cleanupAscii();
     cleanupAscii = () => {};
+    cleanupMermaidInteractions();
+    cleanupMermaidInteractions = () => {};
     root.innerHTML = "";
     const route = parseHash(window.location.hash);
     const topic = findTopic(manifest, route.topicSlug);
@@ -105,6 +108,7 @@ export function createPresentationApp(options: {
 
     if (slideBody && slide.hasMermaid && mermaidAdapter) {
       await mermaidAdapter.render(slideBody);
+      cleanupMermaidInteractions = attachMermaidInteractions(slideBody);
     }
   };
 
@@ -118,9 +122,116 @@ export function createPresentationApp(options: {
   return {
     destroy: () => {
       cleanupAscii();
+      cleanupMermaidInteractions();
       window.removeEventListener("hashchange", handleHashChange);
       root.innerHTML = "";
     }
+  };
+}
+
+function attachMermaidInteractions(container: HTMLElement): () => void {
+  let overlay: HTMLDivElement | null = null;
+
+  const closeOverlay = () => {
+    overlay?.removeEventListener("click", handleOverlayClick);
+    overlay?.remove();
+    overlay = null;
+    document.removeEventListener("keydown", handleDocumentKeydown);
+    document.body.classList.remove("mermaid-overlay-open");
+  };
+
+  const handleOverlayClick = (event: MouseEvent) => {
+    const target = event.target as HTMLElement | null;
+
+    if (!target) {
+      return;
+    }
+
+    if (target.closest("[data-mermaid-overlay-close]") || target === overlay) {
+      closeOverlay();
+    }
+  };
+
+  const handleDocumentKeydown = (event: KeyboardEvent) => {
+    if (event.key === "Escape") {
+      closeOverlay();
+    }
+  };
+
+  const openOverlay = (block: HTMLElement) => {
+    const svg = block.querySelector<SVGElement>("svg");
+
+    if (!svg) {
+      return;
+    }
+
+    closeOverlay();
+
+    const clonedSvg = svg.cloneNode(true) as SVGElement;
+    overlay = document.createElement("div");
+    overlay.className = "mermaid-overlay";
+    overlay.setAttribute("data-mermaid-overlay", "");
+    overlay.setAttribute("role", "dialog");
+    overlay.setAttribute("aria-modal", "true");
+    overlay.setAttribute("aria-label", "Expanded Mermaid diagram");
+    overlay.innerHTML = `
+      <div class="mermaid-overlay-panel">
+        <div class="mermaid-overlay-header">
+          <span class="mermaid-overlay-label">diagram</span>
+          <button type="button" class="mermaid-overlay-close" data-mermaid-overlay-close aria-label="Close expanded Mermaid diagram">Close</button>
+        </div>
+        <div class="mermaid-overlay-canvas" data-mermaid-overlay-canvas></div>
+      </div>
+    `;
+    overlay.querySelector<HTMLElement>("[data-mermaid-overlay-canvas]")?.append(clonedSvg);
+    overlay.addEventListener("click", handleOverlayClick);
+    document.addEventListener("keydown", handleDocumentKeydown);
+    document.body.classList.add("mermaid-overlay-open");
+    document.body.append(overlay);
+  };
+
+  const isInteractiveMermaidTarget = (target: HTMLElement | null): boolean => {
+    if (!target) {
+      return false;
+    }
+
+    return Boolean(target.closest("a, button, input, select, textarea, summary, [role='button']"));
+  };
+
+  const handleContainerClick = (event: MouseEvent) => {
+    const target = event.target as HTMLElement | null;
+    const block = target?.closest<HTMLElement>("[data-mermaid-block]");
+
+    if (!block || isInteractiveMermaidTarget(target)) {
+      return;
+    }
+
+    openOverlay(block);
+  };
+
+  const handleContainerKeydown = (event: KeyboardEvent) => {
+    if (event.key !== "Enter" && event.key !== " ") {
+      return;
+    }
+
+    const target = event.target as HTMLElement | null;
+    const block = target?.closest<HTMLElement>("[data-mermaid-block]");
+
+    if (!block || target !== block || isInteractiveMermaidTarget(target)) {
+      return;
+    }
+
+    event.preventDefault();
+    openOverlay(block);
+  };
+
+  container.addEventListener("click", handleContainerClick);
+  container.addEventListener("keydown", handleContainerKeydown);
+
+  return () => {
+    closeOverlay();
+    container.removeEventListener("click", handleContainerClick);
+    container.removeEventListener("keydown", handleContainerKeydown);
   };
 }
 
