@@ -15,7 +15,7 @@ ascii_height: 6
 5. Як скейлити?
 6. Як дебажити?
 
-Тут ми і стикаємось з реальністю. **Coding is solved, other 8 circles og hell - not (yet)**.
+Тут ми і стикаємось з реальністю. **Coding is solved, other circles og hell - not (yet)**.
 
 <br />
 <br />

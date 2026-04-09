@@ -423,7 +423,7 @@ describe("renderAsciiPreview", () => {
 
     expect(combined).toContain("~/knowledge-sharing % ");
     expect(combined).toMatch(/topics\/0-poly-tg-bot-guide|package\.json|src\/presentation\/ascii/i);
-    expect(combined).toMatch(/vite build|generate-slide-ascii|git diff --stat|ascii_seed: null/i);
+    expect(combined).toMatch(/vite build|generate-slide-ascii|git diff --stat|ascii_seed:/i);
   });
 
   it("renders taller terminal streams with more retained history", () => {

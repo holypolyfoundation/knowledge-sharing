@@ -82,6 +82,12 @@ describe("createPresentationApp", () => {
 
   it("updates prev and next controls and renders mermaid slides", async () => {
     document.body.innerHTML = '<div id="root"></div>';
+    const scrollTo = vi.fn();
+    Object.defineProperty(window, "scrollTo", {
+      value: scrollTo,
+      writable: true,
+      configurable: true
+    });
     const mermaidRender = vi.fn().mockImplementation(async (container: HTMLElement) => {
       const node = container.querySelector(".mermaid");
 
@@ -130,10 +136,12 @@ describe("createPresentationApp", () => {
     (document.querySelector(".mermaid-overlay") as HTMLElement).click();
     expect(document.querySelector(".mermaid-overlay")).toBeNull();
 
+    scrollTo.mockClear();
     (document.querySelector(".nav-button.primary") as HTMLButtonElement).click();
     window.dispatchEvent(new HashChangeEvent("hashchange"));
     await flushUi();
 
+    expect(scrollTo).toHaveBeenCalledWith({ left: 0, top: 0 });
     expect(document.querySelector(".stage-heading h1")?.textContent).toBe("Next Step");
     expect(document.querySelector(".slide-ascii")).toBeNull();
     expect(document.querySelector(".stage-summary")).toBeNull();

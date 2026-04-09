@@ -1,10 +1,8 @@
 ---
-
-title: "Cooking"
+title: "Vibing"
 summary: null
 ascii_seed: circuit-pulse
 ascii_height: 5
-
 ---
 
 Є ідея

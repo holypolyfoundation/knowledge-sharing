@@ -1,5 +1,5 @@
 ---
-title: "How to make something?"
+title: "How to Make Something?"
 summary: null
 ascii_seed: starfield
 ascii_height: 5
@@ -21,6 +21,8 @@ ascii_height: 5
 <br />
 
 ## Правильний підхід роботи з AI
+
+#### Golden Loop
 
 ```mermaid
 flowchart LR

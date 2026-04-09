@@ -324,9 +324,9 @@ const TERMINAL_INTERACTIONS: readonly TerminalInteraction[] = [
   {
     command: 'rg -n "ascii_seed: (terminal|null)" topics | sort -t: -k1,1 -k2,2n',
     outputs: [
-      "topics/0-poly-tg-bot-guide/2-retro-enfineering.md:4:ascii_seed: terminal",
-      "topics/0-poly-tg-bot-guide/4-modern-dev-tooling.md:4:ascii_seed: null",
-      "topics/0-poly-tg-bot-guide/8-qa.md:4:ascii_seed: null"
+      "topics/0-poly-tg-bot-guide/2-old-school-vs-ai.md:4:ascii_seed: terminal",
+      "topics/0-poly-tg-bot-guide/4-ai-dev-tools.md:4:ascii_seed: radar",
+      "topics/0-poly-tg-bot-guide/7-qa.md:4:ascii_seed: packet-flow"
     ]
   },
   {
@@ -357,9 +357,9 @@ const TERMINAL_INTERACTIONS: readonly TerminalInteraction[] = [
     command: "fd -e md topics | xargs rg -n '^title:|^ascii_seed:' | head -n 6",
     outputs: [
       "topics/0-poly-tg-bot-guide/0-intro.md:2:title: Intro",
-      "topics/0-poly-tg-bot-guide/0-intro.md:4:ascii_seed: zero-one",
-      "topics/0-poly-tg-bot-guide/2-retro-enfineering.md:2:title: Retro Enfineering",
-      "topics/0-poly-tg-bot-guide/2-retro-enfineering.md:4:ascii_seed: terminal"
+      "topics/0-poly-tg-bot-guide/0-intro.md:4:ascii_seed: swarm",
+      "topics/0-poly-tg-bot-guide/2-old-school-vs-ai.md:2:title: Old School vs New School SWE",
+      "topics/0-poly-tg-bot-guide/2-old-school-vs-ai.md:4:ascii_seed: terminal"
     ]
   },
   {
@@ -376,7 +376,7 @@ const TERMINAL_INTERACTIONS: readonly TerminalInteraction[] = [
     command: "pnpm validate 2>&1 | sed -n '1,5p'",
     outputs: [
       "building presentation manifest",
-      "loaded 1 topic and 9 slides",
+      "loaded 1 topic and 8 slides",
       "virtual:presentation-manifest ready",
       "validation completed in 74ms"
     ]

@@ -63,6 +63,10 @@ function formatCode(prefix: string, numericId: number): string {
   return `${prefix}${String(numericId + 1).padStart(2, "0")}`;
 }
 
+function scrollToTop(): void {
+  window.scrollTo({ left: 0, top: 0 });
+}
+
 export function createPresentationApp(options: {
   root: HTMLElement;
   manifest: PresentationManifest;
@@ -329,6 +333,7 @@ function renderSlideView(
       "nav-button",
       () => {
         if (previousSlideId !== null) {
+          scrollToTop();
           window.location.hash = buildHash(topic, previousSlideId);
         }
       },
@@ -341,6 +346,7 @@ function renderSlideView(
       "nav-button primary",
       () => {
         if (nextSlideId !== null) {
+          scrollToTop();
           window.location.hash = buildHash(topic, nextSlideId);
         }
       },
