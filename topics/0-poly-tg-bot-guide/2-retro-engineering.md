@@ -4,28 +4,28 @@ summary: null
 ascii_seed: terminal
 ---
 
-#### Рутина інженера
+### Рутина інженера
 
 ##### 5 років тому
 
 ```mermaid
 flowchart TB
   C((Клієнти))
-  GW[API Gateway / BFF]
+  GW[API Gateway]
 
-  subgraph identity["Ідентичність і граф"]
+  subgraph identity["Auth & Graph"]
     AUTH[Auth]
     PROFILE[Профілі]
     GRAPH[Social graph<br/>підписки]
   end
 
-  subgraph content["Контент"]
+  subgraph content["Content"]
     POST[Пости / твіти]
     MEDIA[Медіа]
     FEED[Стрічка]
   end
 
-  subgraph comm["Пошук і комунікації"]
+  subgraph comm["Search & Communication"]
     SEARCH[Пошук]
     NOTIFY[Сповіщення]
     DM[Direct messages]
@@ -49,10 +49,13 @@ flowchart TB
 ##### Сьогодні
 
 ```md
-Згенеруй систему: API Gateway, Auth → Profile, Social graph → Profile, пости з медіа, стрічка що збирає граф + пости, пошук по постах, сповіщення про пости і профілі, DM з перевіркою auth. Имплементуй проект, зроби його готовим до високого навантаження. Не роби помилок!
+Створи повний клон системи "X": API Gateway, Auth → Profile, Social graph → Profile, пости з медіа, стрічка що збирає граф + пости, пошук по постах, сповіщення про пости і профілі, DM з перевіркою auth. Имплементуй проект, зроби його готовим до високого навантаження. Не роби помилок!
 ```
 
-#### Рутина НЕ інженера
+<br />
+<br />
+
+### Рутина НЕ інженера
 
 #### 5 років тому
 
