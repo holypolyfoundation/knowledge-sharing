@@ -1,5 +1,5 @@
 ---
-title: "Modern dev tools"
+title: "Modern Dev Tools"
 summary: null
 ascii_seed: radar
 ascii_height: 5
