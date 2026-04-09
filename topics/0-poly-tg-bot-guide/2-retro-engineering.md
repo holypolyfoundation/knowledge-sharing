@@ -136,7 +136,7 @@ flowchart TB
 
 ## Цикл роботи розробника
 
-### Сьогодні
+### 5 років тому
 
 ```mermaid
 flowchart LR
@@ -154,7 +154,7 @@ flowchart LR
   K --> A
 ```
 
-### 5 років тому
+### Сьогодні
 
 ```mermaid
 flowchart LR
