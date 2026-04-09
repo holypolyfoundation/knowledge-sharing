@@ -9,6 +9,29 @@ function expectFullWidthRows(preview: string, width: number, rowCount: number): 
   return lines;
 }
 
+function collectLifeCells(preview: string, glyphs: string): Set<string> {
+  const cells = new Set<string>();
+  const lines = preview.split("\n");
+
+  lines.forEach((line, row) => {
+    for (let column = 0; column < line.length; column += 1) {
+      if (glyphs.includes(line[column] ?? "")) {
+        cells.add(`${row}:${column}`);
+      }
+    }
+  });
+
+  return cells;
+}
+
+function intersectSets(left: Set<string>, right: Set<string>): string[] {
+  return [...left].filter((value) => right.has(value)).sort();
+}
+
+function differenceSets(left: Set<string>, right: Set<string>): string[] {
+  return [...left].filter((value) => !right.has(value)).sort();
+}
+
 describe("renderAsciiPreview", () => {
   it("renders zero-one as exactly three binary rows by default", () => {
     const preview = renderAsciiPreview("zero-one", {
@@ -453,6 +476,74 @@ describe("renderAsciiPreview", () => {
     }, 48, 12);
 
     expect(later).not.toBe(start);
+  });
+
+  it("uses tween frames so adjacent game-of-life frames are not duplicated", () => {
+    const frames = Array.from({ length: 3 }, (_, frame) =>
+      renderAsciiPreview("game-of-life", {
+        slideTitle: "Life",
+        summary: "Automaton"
+      }, 48, frame)
+    );
+
+    expect(frames[1]).not.toBe(frames[0]);
+    expect(frames[2]).not.toBe(frames[1]);
+  });
+
+  it("keeps odd game-of-life frames as transition tweens between even generations", () => {
+    const current = renderAsciiPreview("game-of-life", {
+      slideTitle: "Life",
+      summary: "Automaton"
+    }, 48, 0);
+    const tween = renderAsciiPreview("game-of-life", {
+      slideTitle: "Life",
+      summary: "Automaton"
+    }, 48, 1);
+    const next = renderAsciiPreview("game-of-life", {
+      slideTitle: "Life",
+      summary: "Automaton"
+    }, 48, 2);
+    const currentLive = collectLifeCells(current, "Oo");
+    const nextLive = collectLifeCells(next, "Oo");
+
+    expect(tween).toMatch(/^[.Oo+\n]+$/);
+    expect(collectLifeCells(tween, "O")).toEqual(new Set(intersectSets(currentLive, nextLive)));
+    expect(collectLifeCells(tween, "o")).toEqual(new Set(differenceSets(currentLive, nextLive)));
+    expect(collectLifeCells(tween, "+")).toEqual(new Set(differenceSets(nextLive, currentLive)));
+  });
+
+  it("keeps game-of-life moving across a sampled frame sequence", () => {
+    const frames = Array.from({ length: 24 }, (_, frame) =>
+      renderAsciiPreview("game-of-life", {
+        slideTitle: "Life",
+        summary: "Automaton"
+      }, 24, frame)
+    );
+
+    for (let index = 1; index < frames.length; index += 1) {
+      expect(frames[index]).not.toBe(frames[index - 1]);
+    }
+  });
+
+  it("uses a settle tween before reseeding game-of-life", () => {
+    const frames = Array.from({ length: 80 }, (_, frame) =>
+      renderAsciiPreview("game-of-life", {
+        slideTitle: "Life",
+        summary: "Automaton"
+      }, 24, frame)
+    );
+    let settleTweenIndex = -1;
+
+    for (let index = 1; index < frames.length - 1; index += 2) {
+      if (/^[.o\n]+$/.test(frames[index] ?? "")) {
+        settleTweenIndex = index;
+        break;
+      }
+    }
+
+    expect(settleTweenIndex).toBeGreaterThanOrEqual(1);
+    expect(frames[settleTweenIndex]).not.toBe(frames[settleTweenIndex - 1]);
+    expect(frames[settleTweenIndex]).not.toBe(frames[settleTweenIndex + 1]);
   });
 
   it("reinitializes game-of-life when a generation freezes", () => {

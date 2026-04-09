@@ -15,6 +15,22 @@ interface ScenarioContext {
   seed: number;
 }
 
+type LifeState = boolean[][];
+
+interface LifeGenerationState {
+  epoch: number;
+  previous: LifeState;
+  current: LifeState;
+  seenStates: Set<string>;
+}
+
+interface LifeTransition {
+  next: LifeState;
+  resets: boolean;
+  epoch: number;
+  seenStates: Set<string>;
+}
+
 const ASCII_FPS = 12;
 
 function clamp(value: number, min: number, max: number): number {
@@ -605,27 +621,27 @@ function renderTerminalFrame(context: ScenarioContext): string {
   return renderTerminalViewport(lines, context.columns, context.rows);
 }
 
-function createEmptyLifeState(columns: number, rows: number): boolean[][] {
+function createEmptyLifeState(columns: number, rows: number): LifeState {
   return Array.from({ length: rows }, () => Array.from({ length: columns }, () => false));
 }
 
-function cloneLifeState(rows: boolean[][]): boolean[][] {
+function cloneLifeState(rows: LifeState): LifeState {
   return rows.map((row) => [...row]);
 }
 
-function hasLiveCells(rows: boolean[][]): boolean {
+function hasLiveCells(rows: LifeState): boolean {
   return rows.some((row) => row.some(Boolean));
 }
 
-function lifeStatesEqual(left: boolean[][], right: boolean[][]): boolean {
+function lifeStatesEqual(left: LifeState, right: LifeState): boolean {
   return left.every((row, rowIndex) => row.every((cell, columnIndex) => cell === right[rowIndex]?.[columnIndex]));
 }
 
-function serializeLifeState(rows: boolean[][]): string {
+function serializeLifeState(rows: LifeState): string {
   return rows.map((row) => row.map((cell) => (cell ? "1" : "0")).join("")).join("|");
 }
 
-function stampLifePattern(rows: boolean[][], anchorRow: number, anchorColumn: number, points: Array<[number, number]>): void {
+function stampLifePattern(rows: LifeState, anchorRow: number, anchorColumn: number, points: Array<[number, number]>): void {
   const rowCount = rows.length;
 
   for (const [rowOffset, columnOffset] of points) {
@@ -635,7 +651,7 @@ function stampLifePattern(rows: boolean[][], anchorRow: number, anchorColumn: nu
   }
 }
 
-function buildInitialLifeState(columns: number, rowCount: number, seed: number, epoch: number): boolean[][] {
+function buildInitialLifeState(columns: number, rowCount: number, seed: number, epoch: number): LifeState {
   const epochSeed = hashSeed(`${seed}|life-epoch|${epoch}`);
   const rows = Array.from({ length: rowCount }, (_, row) =>
     Array.from({ length: columns }, (_, column) => {
@@ -663,7 +679,7 @@ function buildInitialLifeState(columns: number, rowCount: number, seed: number, 
   return rows;
 }
 
-function evolveLifeState(current: boolean[][], columns: number): boolean[][] {
+function evolveLifeState(current: LifeState, columns: number): LifeState {
   const rowCount = current.length;
   const next = createEmptyLifeState(columns, rowCount);
 
@@ -697,58 +713,127 @@ function evolveLifeState(current: boolean[][], columns: number): boolean[][] {
   return next;
 }
 
-function buildLifeGeneration(columns: number, rowCount: number, seed: number, generation: number): { previous: boolean[][]; current: boolean[][] } {
-  let epoch = 0;
-  let previous = createEmptyLifeState(columns, rowCount);
-  let current = buildInitialLifeState(columns, rowCount, seed, epoch);
-  let seenStates = new Set([serializeLifeState(current)]);
-
-  if (generation === 0) {
-    return {
-      previous,
-      current
-    };
-  }
-
-  for (let step = 0; step < generation; step += 1) {
-    const next = evolveLifeState(current, columns);
-    const nextSignature = serializeLifeState(next);
-
-    if (!hasLiveCells(next) || lifeStatesEqual(next, current) || seenStates.has(nextSignature)) {
-      epoch += 1;
-      previous = createEmptyLifeState(columns, rowCount);
-      current = buildInitialLifeState(columns, rowCount, seed, epoch);
-      seenStates = new Set([serializeLifeState(current)]);
-      continue;
-    }
-
-    previous = cloneLifeState(current);
-    current = next;
-    seenStates.add(nextSignature);
-  }
+function createInitialLifeGeneration(columns: number, rowCount: number, seed: number, epoch: number): LifeGenerationState {
+  const current = buildInitialLifeState(columns, rowCount, seed, epoch);
 
   return {
-    previous,
-    current
+    epoch,
+    previous: createEmptyLifeState(columns, rowCount),
+    current,
+    seenStates: new Set([serializeLifeState(current)])
   };
 }
 
-function renderGameOfLifeFrame(context: ScenarioContext): string {
-  const generation = Math.floor(context.frame / 2);
-  const state = buildLifeGeneration(context.columns, context.rows, context.seed, generation);
-  const rows = createFilledRows(context.columns, context.rows, ["."]);
+function buildLifeTransition(
+  current: LifeState,
+  columns: number,
+  rowCount: number,
+  seed: number,
+  epoch: number,
+  seenStates: Set<string>
+): LifeTransition {
+  const next = evolveLifeState(current, columns);
+  const nextSignature = serializeLifeState(next);
 
-  for (let row = 0; row < context.rows; row += 1) {
-    for (let column = 0; column < context.columns; column += 1) {
-      if (state.current[row][column]) {
-        rows[row][column] = state.previous[row][column] ? "O" : "o";
-      } else if (state.previous[row][column]) {
+  if (!hasLiveCells(next) || lifeStatesEqual(next, current) || seenStates.has(nextSignature)) {
+    const nextEpoch = epoch + 1;
+    const reset = createInitialLifeGeneration(columns, rowCount, seed, nextEpoch);
+
+    return {
+      next: reset.current,
+      resets: true,
+      epoch: nextEpoch,
+      seenStates: reset.seenStates
+    };
+  }
+
+  return {
+    next,
+    resets: false,
+    epoch,
+    seenStates: new Set([...seenStates, nextSignature])
+  };
+}
+
+function buildLifeGeneration(columns: number, rowCount: number, seed: number, generation: number): LifeGenerationState {
+  let state = createInitialLifeGeneration(columns, rowCount, seed, 0);
+
+  for (let step = 0; step < generation; step += 1) {
+    const transition = buildLifeTransition(state.current, columns, rowCount, seed, state.epoch, state.seenStates);
+
+    if (transition.resets) {
+      state = {
+        epoch: transition.epoch,
+        previous: createEmptyLifeState(columns, rowCount),
+        current: transition.next,
+        seenStates: transition.seenStates
+      };
+      continue;
+    }
+
+    state = {
+      epoch: state.epoch,
+      previous: cloneLifeState(state.current),
+      current: transition.next,
+      seenStates: transition.seenStates
+    };
+  }
+
+  return state;
+}
+
+function renderLifeGeneration(previous: LifeState, current: LifeState, columns: number, rowCount: number): string {
+  const rows = createFilledRows(columns, rowCount, ["."]);
+
+  for (let row = 0; row < rowCount; row += 1) {
+    for (let column = 0; column < columns; column += 1) {
+      if (current[row][column]) {
+        rows[row][column] = previous[row][column] ? "O" : "o";
+      } else if (previous[row][column]) {
         rows[row][column] = "+";
       }
     }
   }
 
   return renderRows(rows);
+}
+
+function renderLifeTween(current: LifeState, next: LifeState, columns: number, rowCount: number, resets: boolean): string {
+  const rows = createFilledRows(columns, rowCount, ["."]);
+
+  for (let row = 0; row < rowCount; row += 1) {
+    for (let column = 0; column < columns; column += 1) {
+      if (resets) {
+        if (current[row][column]) {
+          rows[row][column] = "o";
+        }
+
+        continue;
+      }
+
+      if (current[row][column] && next[row][column]) {
+        rows[row][column] = "O";
+      } else if (current[row][column]) {
+        rows[row][column] = "o";
+      } else if (next[row][column]) {
+        rows[row][column] = "+";
+      }
+    }
+  }
+
+  return renderRows(rows);
+}
+
+function renderGameOfLifeFrame(context: ScenarioContext): string {
+  const generation = Math.floor(context.frame / 2);
+  const state = buildLifeGeneration(context.columns, context.rows, context.seed, generation);
+
+  if (context.frame % 2 === 0) {
+    return renderLifeGeneration(state.previous, state.current, context.columns, context.rows);
+  }
+
+  const transition = buildLifeTransition(state.current, context.columns, context.rows, context.seed, state.epoch, state.seenStates);
+  return renderLifeTween(state.current, transition.next, context.columns, context.rows, transition.resets);
 }
 
 function renderZeroOneFrame(context: ScenarioContext): string {
