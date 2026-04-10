@@ -58,6 +58,7 @@ describe("createPresentationApp", () => {
     expect(document.querySelector(".system-header")).toBeNull();
     expect(document.querySelector(".hud-intro")).toBeNull();
     expect(document.querySelector(".topic-module")?.textContent).toContain("Demo");
+    expect(document.title).toBe("[01]");
   });
 
   it("opens the first slide when a topic is selected", async () => {
@@ -74,6 +75,7 @@ describe("createPresentationApp", () => {
 
     expect(document.querySelector(".telemetry-strip")).toBeNull();
     expect(document.querySelector(".system-header")).toBeNull();
+    expect(document.title).toBe("[S01/02]");
     expect(document.querySelector(".stage-heading h1")?.textContent).toBe("Intro");
     expect(document.querySelector(".slide-ascii pre")?.textContent?.split("\n")).toHaveLength(10);
     expect(document.querySelector(".slide-ascii")?.getAttribute("style")).toContain("--ascii-rows: 10");
@@ -106,6 +108,7 @@ describe("createPresentationApp", () => {
     });
 
     await flushUi();
+    expect(document.title).toBe("[S01/02]");
     expect(mermaidRender).toHaveBeenCalledTimes(1);
     expect(document.querySelector(".telemetry-strip")).toBeNull();
     expect(document.querySelector(".system-header")).toBeNull();
@@ -142,6 +145,7 @@ describe("createPresentationApp", () => {
     await flushUi();
 
     expect(scrollTo).toHaveBeenCalledWith({ left: 0, top: 0 });
+    expect(document.title).toBe("[S02/02]");
     expect(document.querySelector(".stage-heading h1")?.textContent).toBe("Next Step");
     expect(document.querySelector(".slide-ascii")).toBeNull();
     expect(document.querySelector(".stage-summary")).toBeNull();
@@ -161,5 +165,6 @@ describe("createPresentationApp", () => {
     await flushUi();
 
     expect(document.querySelector(".stage-heading h1")?.textContent).toBe("Next Step");
+    expect(document.title).toBe("[S02/02]");
   });
 });

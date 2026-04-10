@@ -1,5 +1,10 @@
 import type { PresentationManifest, TopicManifest } from "../content/load-topics.ts";
 import { mountAsciiAnimation } from "./ascii.ts";
+import {
+  SITE_DOCUMENT_TITLE_DEFAULT,
+  attachAnimatedSlideDocumentTitle,
+  attachAnimatedTopicListDocumentTitle
+} from "./site-brand.ts";
 
 export interface MermaidAdapter {
   render(container: HTMLElement): Promise<void>;
@@ -75,17 +80,21 @@ export function createPresentationApp(options: {
   const { root, manifest, mermaidAdapter } = options;
   let cleanupAscii = () => {};
   let cleanupMermaidInteractions = () => {};
+  let cleanupDocumentTitle = () => {};
 
   const render = async (): Promise<void> => {
     cleanupAscii();
     cleanupAscii = () => {};
     cleanupMermaidInteractions();
     cleanupMermaidInteractions = () => {};
+    cleanupDocumentTitle();
+    cleanupDocumentTitle = () => {};
     root.innerHTML = "";
     const route = parseHash(window.location.hash);
     const topic = findTopic(manifest, route.topicSlug);
 
     if (!topic || topic.slides.length === 0) {
+      cleanupDocumentTitle = attachAnimatedTopicListDocumentTitle(manifest.topics.length);
       renderTopicList(root, manifest);
       return;
     }
@@ -93,6 +102,7 @@ export function createPresentationApp(options: {
     const slide = topic.slides.find((item) => item.id === route.slideId) ?? topic.slides[0];
     const slideIndex = topic.slides.findIndex((item) => item.id === slide.id);
     const currentSlideNumber = slideIndex + 1;
+    cleanupDocumentTitle = attachAnimatedSlideDocumentTitle(slide.id, topic.slides.length);
     const previousSlide = slideIndex > 0 ? topic.slides[slideIndex - 1] : null;
     const nextSlide = slideIndex < topic.slides.length - 1 ? topic.slides[slideIndex + 1] : null;
 
@@ -127,8 +137,10 @@ export function createPresentationApp(options: {
     destroy: () => {
       cleanupAscii();
       cleanupMermaidInteractions();
+      cleanupDocumentTitle();
       window.removeEventListener("hashchange", handleHashChange);
       root.innerHTML = "";
+      document.title = SITE_DOCUMENT_TITLE_DEFAULT;
     }
   };
 }

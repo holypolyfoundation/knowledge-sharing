@@ -7,10 +7,20 @@ import { defineConfig } from "vitest/config";
 import { buildPresentationManifest } from "./src/content/load-topics.ts";
 import { renderPresentationManifestModule } from "./src/content/presentation-manifest-module.ts";
 import { copyTopicAssets, isTopicAssetFile, resolveTopicAssetPublicPath } from "./src/content/topic-assets.ts";
+import { SITE_DOCUMENT_TITLE_DEFAULT } from "./src/presentation/site-brand.ts";
 
 const repositoryName = process.env.GITHUB_REPOSITORY?.split("/")[1] ?? "knowledge-sharing";
 const PRESENTATION_MANIFEST_ID = "virtual:presentation-manifest";
 const RESOLVED_PRESENTATION_MANIFEST_ID = `\0${PRESENTATION_MANIFEST_ID}`;
+
+function injectSiteDocumentTitlePlugin(): Plugin {
+  return {
+    name: "inject-site-document-title",
+    transformIndexHtml(html: string) {
+      return html.replace(/<title>[\s\S]*?<\/title>/i, `<title>${SITE_DOCUMENT_TITLE_DEFAULT}</title>`);
+    }
+  };
+}
 
 function contentTypeForAsset(filePath: string): string {
   const extension = path.extname(filePath).toLowerCase();
@@ -152,7 +162,7 @@ function markdownManifestReloadPlugin(command: "build" | "serve"): Plugin {
 
 export default defineConfig(({ command }) => ({
   base: command === "build" ? `/${repositoryName}/` : "/",
-  plugins: process.env.VITEST ? [] : [markdownManifestReloadPlugin(command)],
+  plugins: process.env.VITEST ? [] : [markdownManifestReloadPlugin(command), injectSiteDocumentTitlePlugin()],
   test: {
     environment: "jsdom",
     globals: true
